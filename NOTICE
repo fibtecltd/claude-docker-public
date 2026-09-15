@@ -1,0 +1,16 @@
+claude-docker-public
+Copyright 2026 Fibtec Limited
+
+This repository bundles, as build-time Claude Code plugin marketplaces,
+forks of third-party projects maintained separately under the fibtecltd
+GitHub organisation:
+
+  - fibtecltd/claude-workflows        (fork of wshobson/agents)
+  - fibtecltd/python-backend-plugins  (fork of ruslan-korneev/python-backend-claude-plugins)
+  - fibtecltd/claude-skills           (fork of alirezarezvani/claude-skills)
+
+Each fork retains its own upstream license. This NOTICE covers only
+attribution for third-party content bundled by this repository (Dockerfile,
+compose files, scripts, and the claude-backup/ configuration bundle) — see
+LICENSE for the Apache License, Version 2.0 terms this repository itself is
+distributed under.
