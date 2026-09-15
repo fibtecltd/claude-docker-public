@@ -1,0 +1,107 @@
+{
+  "// WARNING": "defaultMode is bypassPermissions — Claude Code will run every tool (Bash, Write, Edit, etc.) inside this container WITHOUT asking for per-action confirmation. This is intentional for our own containerized, disposable dev environment, but is a meaningfully different security posture than Claude Code's own default. If you are adopting this repo, read SETUP.md's 'Permission mode' section before you build, and change this to a normal permission mode if you are not comfortable with an unattended agent running arbitrary shell commands on your behalf.",
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "MAX_THINKING_TOKENS": "16000",
+    "ENABLE_TOOL_SEARCH": "auto"
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "skillListingBudgetFraction": 0.03,
+  "hasCompletedOnboarding": true,
+  "hasAcknowledgedCostWarning": true,
+  "primaryApiKeySource": "environment",
+  "autoApproveApiKey": true,
+  "oauthAccount": null,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/claude/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/claude/.claude/hooks/gsd-context-monitor.js\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=\"${CLAUDE_TOOL_INPUT_FILE_PATH:-}\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then sync \"$FILE\" 2>/dev/null || sync; fi'",
+            "timeout": 5
+      }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/claude/.claude/hooks/gsd-prompt-guard.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"/home/claude/.claude/hooks/gsd-statusline.js\""
+  },
+  "enabledPlugins": {
+    "engineering-skills@claude-code-skills": true,
+    "cloud-infrastructure@claude-code-workflows": true,
+    "documentation-generation@claude-code-workflows": true,
+    "code-documentation@claude-code-workflows": true,
+    "comprehensive-review@claude-code-workflows": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "application-performance@claude-code-workflows": true,
+    "security-scanning@claude-code-workflows": true,
+    "quantitative-trading@claude-code-workflows": true,
+    "frontend-design@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "docker-development@claude-code-skills": true,
+    "terraform-patterns@claude-code-skills": true,
+    "statistical-analyst@claude-code-skills": true,
+    "karpathy-coder@claude-code-skills": true,
+    "performance-testing-review@claude-code-workflows": true,
+    "api-scaffolding@claude-code-workflows": true,
+    "api-testing-observability@claude-code-workflows": true,
+    "blockchain-web3@claude-code-workflows": true,
+    "data-engineering@claude-code-workflows": true,
+    "database-cloud-optimization@claude-code-workflows": true,
+    "frontend-mobile-development@claude-code-workflows": true,
+    "finance-skills@claude-code-skills": true,
+    "data-quality-auditor@claude-code-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "theme": "light"
+}

@@ -1,0 +1,34 @@
+{
+  "firstStartTime": null,
+  "autoUpdatesChannel": "stable",
+  "numStartups": 0,
+  "installMethod": "global",
+  "autoUpdates": true,
+  "theme": "light",
+  "hasCompletedOnboarding": false,
+  "hasAcknowledgedCostThreshold": false,
+  "hasSeenStashHint": false,
+  "migrationVersion": 0,
+  "hasOpusPlanDefault": false,
+  "hasAvailableSubscription": false,
+  "isQualifiedForDataSharing": false,
+  "showSpinnerTree": false,
+  "seenNotifications": {},
+  "customApiKeyResponses": {
+    "approved": [],
+    "rejected": []
+  },
+  "tipsHistory": {},
+  "projects": {
+    "/workspace": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "hasCompletedProjectOnboarding": false
+    }
+  },
+  "oauthAccount": null
+}

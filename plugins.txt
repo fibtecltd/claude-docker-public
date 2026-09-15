@@ -1,0 +1,33 @@
+# Official plugins
+claude plugins install pyright-lsp@claude-plugins-official
+claude plugins install superpowers@claude-plugins-official
+claude plugins install frontend-design@claude-plugins-official
+claude plugins install github@claude-plugins-official
+claude plugins install skill-creator@claude-plugins-official
+claude plugins install claude-md-management@claude-plugins-official
+claude plugins install ralph-loop@claude-plugins-official
+
+# Skills
+claude plugins install aws-architect@claude-code-skills
+claude plugins install docker-development@claude-code-skills
+claude plugins install terraform-patterns@claude-code-skills
+claude plugins install statistical-analyst@claude-code-skills
+claude plugins install karpathy-coder@claude-code-skills
+claude plugins install finance-skills@claude-code-skills
+claude plugins install data-quality-auditor@claude-code-skills
+
+# Workflows
+claude plugins install cloud-infrastructure@claude-code-workflows
+claude plugins install documentation-generation@claude-code-workflows
+claude plugins install code-documentation@claude-code-workflows
+claude plugins install comprehensive-review@claude-code-workflows
+claude plugins install application-performance@claude-code-workflows
+claude plugins install security-scanning@claude-code-workflows
+claude plugins install quantitative-trading@claude-code-workflows
+claude plugins install performance-testing-review@claude-code-workflows
+claude plugins install api-scaffolding@claude-code-workflows
+claude plugins install api-testing-observability@claude-code-workflows
+claude plugins install blockchain-web3@claude-code-workflows
+claude plugins install data-engineering@claude-code-workflows
+claude plugins install database-cloud-optimization@claude-code-workflows
+claude plugins install frontend-mobile-development@claude-code-workflows

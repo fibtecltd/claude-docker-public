@@ -1,0 +1,39 @@
+# ============================================================
+# requirements-heavy.txt
+# Pre-installed at Docker BUILD time (layer cached).
+#
+# These packages are large, slow to compile, or require system
+# libraries. Baking them into the image means:
+#   - Container starts in seconds, not minutes
+#   - Numba JIT cache is pre-compiled and baked in
+#   - No network dependency at container startup
+#   - Ray and Dask cluster deps are always available
+#
+# !! When changing a version here, rebuild with --no-cache !!
+# ============================================================
+
+# ── Numerical foundation ──────────────────────────────────────
+numpy>=1.26.0
+scipy>=1.13.0
+pandas>=2.2.0
+
+# ── JIT compiler (requires LLVM — build tools needed at install) ──
+numba>=0.59.0
+
+# ── Columnar data (native Rust/C++ extensions) ───────────────
+polars>=0.20.0
+pyarrow>=15.0.0
+
+# ── Distributed compute (large dependency trees) ─────────────
+dask[complete]>=2024.1.0
+ray[default]>=2.10.0
+
+# ── Financial models (C++ extensions) ────────────────────────
+statsmodels>=0.14.0
+arch>=6.3.0
+QuantLib>=1.33                 # correct package name (quantlib-python is a dead legacy alias)
+empyrical>=0.5.5
+
+# ── Visualisation (large transitive deps) ────────────────────
+streamlit>=1.32.0
+plotly>=5.20.0

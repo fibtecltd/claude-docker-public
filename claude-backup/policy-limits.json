@@ -1,0 +1,20 @@
+{
+  "// note": "This file controls Claude Code policy inside the Docker container.",
+  "// host_policy": "The host ~/.claude/policy-limits.json is separate and unaffected.",
+  "// routines_note": "allow_routines enabled for Agent Teams workflows. Pair this with a review/adversarial-check step before any agent-authored change merges.",
+  "restrictions": {
+    "allow_remote_control": {
+      "allowed": true
+    },
+    "allow_routines": {
+      "allowed": true
+    },
+    "allow_quick_web_setup": {
+      "allowed": false
+    },
+    "enforce_web_search_mcp_isolation": {
+      "allowed": false
+    }
+  },
+  "compliance_taints": []
+}
