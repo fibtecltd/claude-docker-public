@@ -1,9 +1,20 @@
 {
   "// WARNING": "defaultMode is bypassPermissions — Claude Code will run every tool (Bash, Write, Edit, etc.) inside this container WITHOUT asking for per-action confirmation. This is intentional for our own containerized, disposable dev environment, but is a meaningfully different security posture than Claude Code's own default. If you are adopting this repo, read SETUP.md's 'Permission mode' section before you build, and change this to a normal permission mode if you are not comfortable with an unattended agent running arbitrary shell commands on your behalf.",
   "env": {
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
     "MAX_THINKING_TOKENS": "16000",
     "ENABLE_TOOL_SEARCH": "auto"
+  },
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5": {
+      "effortLevel": "medium"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "medium"
+    }
   },
   "permissions": {
     "defaultMode": "bypassPermissions"
