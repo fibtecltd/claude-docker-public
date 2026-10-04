@@ -39,6 +39,7 @@ docker compose run --rm claude
 
 ## License
 
-MIT — see [LICENSE](./LICENSE). Bundled plugin marketplaces (forks of
-third-party projects) retain their own upstream licenses; see LICENSE for
-details.
+Apache License 2.0 — see [LICENSE](./LICENSE), matching
+[pyvar](https://github.com/fibtecltd/pyvar)'s license. Bundled plugin
+marketplaces (forks of third-party projects) retain their own upstream
+licenses and are credited in [NOTICE](./NOTICE).

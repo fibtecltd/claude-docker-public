@@ -62,7 +62,7 @@
             "type": "command",
             "command": "bash -c 'FILE=\"${CLAUDE_TOOL_INPUT_FILE_PATH:-}\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then sync \"$FILE\" 2>/dev/null || sync; fi'",
             "timeout": 5
-      }
+          }
         ]
       }
     ],

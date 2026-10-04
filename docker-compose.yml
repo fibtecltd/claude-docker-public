@@ -75,9 +75,6 @@ services:
       - numba_cache:/home/claude/.cache/numba
 
       # ── Project directories (bind-mounts from host) ──────────
-      # pyvar (https://github.com/fibtecltd/pyvar) is the public project
-      # this image was originally built to develop. Add one line per
-      # project/worktree you want available at /workspace/<name>.
       - ~/projects/pyvar:/workspace/pyvar
       - ~/projects/pyvar-worktrees:/workspace/pyvar-worktrees
 
