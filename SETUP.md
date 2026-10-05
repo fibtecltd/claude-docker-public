@@ -1,6 +1,7 @@
 # Claude Code B+D Plugin Setup
 ## fibtecltd marketplace forks + build-time plugin installation
 
+<!-- public-mirror-banner -->
 > **About this repo.** This is the public mirror of Fibtec's internal
 > `claude-docker` setup for running Claude Code in a containerized dev
 > environment, originally built for [pyvar](https://github.com/fibtecltd/pyvar).
@@ -8,14 +9,14 @@
 > (run from the private repo) — see that script for what is and isn't
 > mirrored here.
 >
-> **Permission mode.** `claude-backup/settings.json` ships with
-> `"defaultMode": "bypassPermissions"` — Claude Code will run every tool
-> (Bash, Write, Edit, etc.) inside the container **without** asking for
-> per-action confirmation. That's a deliberate choice for our own
-> disposable, containerized dev environment, not Claude Code's own default.
-> If you adopt this repo, decide deliberately whether you want that too —
-> change `permissions.defaultMode` (and `skipDangerousModePermissionPrompt`)
-> in `claude-backup/settings.json` before building if you don't.
+> **Permission mode.** `claude-backup/settings.json` may ship with
+> `"defaultMode": "bypassPermissions"` — check the file. If so, Claude Code
+> will run every tool (Bash, Write, Edit, etc.) inside the container
+> **without** asking for per-action confirmation. That's a deliberate choice
+> for our own disposable, containerized dev environment, not Claude Code's
+> own default. If you adopt this repo, decide deliberately whether you want
+> that too.
+
 
 ---
 
@@ -179,10 +180,6 @@ docker compose run --rm claude
 | `claude_persist` | `.claude-persist/` | Auth token copy | Yes |
 | Image layer | `.claude/plugins/` | All 41 plugins | N/A — in image |
 | Image layer | `.claude/settings.local.json` | Plugin enable list | N/A — in image |
-
-Volume names are prefixed with your clone directory's name (the Docker
-Compose project name) — `claude-docker-public_...` if you cloned this repo
-as-is.
 
 To reset auth (re-login):
 ```bash
