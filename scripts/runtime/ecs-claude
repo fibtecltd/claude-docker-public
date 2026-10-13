@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Image entrypoint: run Claude Code with the plugins of one profile.
+#
+# CLAUDE_PROFILE (default: core) names a file in /opt/claude/profiles/; each
+# plugin it lists is loaded from /opt/claude/plugins/ with --plugin-dir. All
+# arguments are passed through to claude, so a headless run is simply
+#   ecs-claude -p "..." --max-turns 20 --max-budget-usd 2
+#
+# CLAUDE_REPO (owner/name, optional) with CLAUDE_REF (branch or tag, optional)
+# runs claude inside a fresh shallow clone of that repository, so its CLAUDE.md
+# and .claude/ are loaded. ECS cannot override an entrypoint at run time, which
+# is why this lives here. GITHUB_TOKEN, when set, authenticates the clone
+# without being written to the URL or to git config.
+set -euo pipefail
+
+profile="${CLAUDE_PROFILE:-core}"
+profiles_dir="${ECS_PROFILES_DIR:-/opt/claude/profiles}"
+plugins_dir="${ECS_PLUGINS_DIR:-/opt/claude/plugins}"
+file="$profiles_dir/$profile.plugins"
+
+if [[ ! "$profile" =~ ^[A-Za-z0-9_-]+$ || ! -f "$file" ]]; then
+    available="$(cd "$profiles_dir" && printf '%s ' *.plugins | sed 's/\.plugins//g')"
+    echo "ecs-claude: unknown CLAUDE_PROFILE '$profile' (available: ${available% })" >&2
+    exit 2
+fi
+
+args=()
+while read -r plugin; do
+    [[ -z "$plugin" || "$plugin" == \#* ]] && continue
+    [[ -d "$plugins_dir/$plugin" ]] \
+        || { echo "ecs-claude: profile '$profile' lists '$plugin', which is not installed" >&2; exit 2; }
+    args+=(--plugin-dir "$plugins_dir/$plugin")
+done < "$file"
+
+if [[ -n "${CLAUDE_REPO:-}" ]]; then
+    ref="${CLAUDE_REF:-}"
+    if [[ ! "$CLAUDE_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+        echo "ecs-claude: CLAUDE_REPO must look like owner/name, got '$CLAUDE_REPO'" >&2
+        exit 2
+    fi
+    if [[ -n "$ref" && ( ! "$ref" =~ ^[A-Za-z0-9_./-]+$ || "$ref" == -* ) ]]; then
+        echo "ecs-claude: CLAUDE_REF must be a branch or tag name, got '$ref'" >&2
+        exit 2
+    fi
+    dest="${ECS_WORKSPACE_DIR:-/workspace}/repo"
+    clone=(clone --quiet --depth 1)
+    [[ -n "$ref" ]] && clone+=(--branch "$ref")
+    export GIT_TERMINAL_PROMPT=0
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        # The helper is a shell snippet run by git: $GITHUB_TOKEN must expand there, not here.
+        # shellcheck disable=SC2016
+        git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GITHUB_TOKEN"; }; f' \
+            "${clone[@]}" -- "https://github.com/$CLAUDE_REPO.git" "$dest" \
+            || { echo "ecs-claude: could not clone $CLAUDE_REPO" >&2; exit 3; }
+    else
+        git "${clone[@]}" -- "https://github.com/$CLAUDE_REPO.git" "$dest" \
+            || { echo "ecs-claude: could not clone $CLAUDE_REPO" >&2; exit 3; }
+    fi
+    cd "$dest"
+fi
+
+exec claude "${args[@]}" "$@"

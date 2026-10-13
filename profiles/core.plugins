@@ -1,0 +1,12 @@
+# Plugins every deployment gets. A profile is a plain list: one name from
+# plugins.lock per line. Selected at start with CLAUDE_PROFILE.
+superpowers
+github
+frontend-design
+comprehensive-review
+security-scanning
+python-development
+unit-testing
+backend-development
+python
+karpathy-coder

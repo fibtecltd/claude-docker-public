@@ -1,95 +1,41 @@
 # ============================================================
-# docker-compose.yml — Claude Code (B+D)
-# macOS / Linux via Docker Desktop
+# docker-compose.yml — Claude Code on ECS
 #
-# Volume strategy (Option D):
-#   claude_sessions → .claude/projects/    session history
-#   claude_persist  → .claude-persist/     auth token copy
-#   plugins/                               image layer — never masked
-#
-# Plugins are baked into the image. Plugin updates require
-# docker compose build --no-cache (not volume manipulation).
+# One service: the ecs-base image, for local runs and smoke tests.
+# ecs-deploy is built by CI, or by `docker build --target ecs-deploy`.
 #
 # Usage:
-#   Start:         docker compose run --rm claude
-#   Start in dir:  docker compose run --rm -w /workspace/pyvar claude
-#   Rebuild:       docker compose build --no-cache claude
-#   Reset auth:    docker volume rm claude-docker_claude_persist
-#   Reset history: docker volume rm claude-docker_claude_sessions
+#   Build:        docker compose build claude-ecs-base
+#   Headless:     docker compose run --rm claude-ecs-base -p "say hi"
+#   No TTY:       docker compose run --rm -T claude-ecs-base -p "..." > out.txt
+#   Interactive:  docker compose run --rm claude-ecs-base
+#   Shell:        docker compose run --rm --entrypoint bash claude-ecs-base
+#
+# Everything is baked into the image: no volumes, each run is disposable.
+# ANTHROPIC_API_KEY is resolved by Compose from the shell or from the .env file
+# next to this file, so nothing needs exporting. CLAUDE_PROFILE (core, pyvar or a
+# profile you add; core when unset) and the two GitHub tokens are resolved the
+# same way. Only variables listed under `environment` reach the container (the
+# .env file itself is not passed in); add more deliberately.
 # ============================================================
 
 services:
-  claude:
+  claude-ecs-base:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_PERSONAL_ACCESS_TOKEN}
-    image: pyvar-claude:latest
+      target: ecs-base
+    image: claude-ecs-base:latest
     stdin_open: true
     tty: true
-
     environment:
       - ANTHROPIC_API_KEY
-      - GITHUB_TOKEN
+      - CLAUDE_PROFILE
+      # GitHub access: the github plugin's MCP server reads
+      # GITHUB_PERSONAL_ACCESS_TOKEN, the gh CLI reads GITHUB_TOKEN. Unset
+      # variables are simply not passed.
       - GITHUB_PERSONAL_ACCESS_TOKEN
-      - GH_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN}
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_DEFAULT_REGION
-      - GIT_AUTHOR_NAME
-      - GIT_AUTHOR_EMAIL
-      - GIT_COMMITTER_NAME
-      - GIT_COMMITTER_EMAIL
-      - PYVAR_TEST_JWT
-      - PYVAR_ORIGIN_VERIFY
-      - SENTRY_DSN
-      - CLAUDE_CODE_MAX_OUTPUT_TOKENS=128000
-      - MAX_THINKING_TOKENS=16000
-      - ENABLE_TOOL_SEARCH=auto
-      - PYTHONPATH=/workspace/pyvar
-      - NUMBA_CACHE_DIR=/home/claude/.cache/numba
-      - PYTHONUNBUFFERED=1
-      - CLAUDE_CODE_SKIP_ONBOARDING=1
-      - TERM=xterm-256color
-
-    deploy:
-      resources:
-        limits:
-          memory: 4g
-        reservations:
-          memory: 512m
-
-    volumes:
-      # ── Persistent: session history ──────────────────────────
-      # Named volume mounts ONLY over .claude/projects/.
-      # Plugins at .claude/plugins/ remain from the image layer.
-      - claude_sessions:/home/claude/.claude/projects/
-
-      # ── Persistent: auth token ───────────────────────────────
-      # .claude.json lives outside .claude/ — entrypoint copies
-      # to/from this volume so auth survives --rm restarts.
-      - claude_persist:/home/claude/.claude-persist/
-
-      # ── Persistent: Numba JIT cache ──────────────────────────
-      - numba_cache:/home/claude/.cache/numba
-
-      # ── Project directories (bind-mounts from host) ──────────
-      - ~/projects/pyvar:/workspace/pyvar
-      - ~/projects/pyvar-worktrees:/workspace/pyvar-worktrees
-
+      - GITHUB_TOKEN
+    # Plain Docker bridge network; no project network is declared.
+    network_mode: bridge
     working_dir: /workspace
-
-networks:
-  default:
-    name: pyvar_net
-    external: true
-
-volumes:
-  claude_sessions:
-    # Claude Code session history — one .jsonl file per session
-  claude_persist:
-    # Auth token backup — survives container restarts
-  numba_cache:
-    # Numba JIT compiled kernels — speeds up first compute call
-

@@ -1,0 +1,96 @@
+name: build-ecs
+
+# Builds the `ecs-base` and `ecs-deploy` targets on pull requests and
+# smoke-tests each result with scripts/ci/smoke-ecs.sh. No API key is needed:
+# the checks only exercise what is baked into the images.
+#
+# ecs-deploy is built second, on the same builder, so it reuses the ecs-base
+# layers it is derived from.
+#
+# Optional secret PLUGIN_GITHUB_TOKEN: only needed if a repo listed in
+# plugins.lock is private (the build has succeeded without it so far). It reaches the
+# build as a BuildKit secret mount (never an ARG), so it does not end up in
+# image history. If unset, the build runs without it.
+#
+# The paths filter keeps docs-only PRs from paying for an image build. If this
+# check is ever made a *required* status check, drop the filter first,
+# otherwise PRs that don't touch these paths will wait on a check that never
+# runs.
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - plugins.lock
+      - profiles/**
+      - claude-config/**
+      - scripts/build/**
+      - scripts/runtime/**
+      - scripts/ci/**
+      - .github/workflows/build-ecs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-ecs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  images:
+    name: Build and smoke-test ecs-base and ecs-deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build ecs-base
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: ecs-base
+          load: true
+          push: false
+          tags: claude-ecs-base:ci
+          cache-from: type=gha,scope=ecs-base
+          cache-to: type=gha,mode=max,scope=ecs-base
+          secrets: ${{ secrets.PLUGIN_GITHUB_TOKEN && format('github_token={0}', secrets.PLUGIN_GITHUB_TOKEN) || '' }}
+
+      - name: Smoke test ecs-base
+        run: bash scripts/ci/smoke-ecs.sh claude-ecs-base:ci base
+
+      - name: Build ecs-deploy
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          target: ecs-deploy
+          load: true
+          push: false
+          tags: claude-ecs-deploy:ci
+          cache-from: |
+            type=gha,scope=ecs-base
+            type=gha,scope=ecs-deploy
+          cache-to: type=gha,mode=max,scope=ecs-deploy
+          secrets: ${{ secrets.PLUGIN_GITHUB_TOKEN && format('github_token={0}', secrets.PLUGIN_GITHUB_TOKEN) || '' }}
+
+      - name: Smoke test ecs-deploy
+        run: bash scripts/ci/smoke-ecs.sh claude-ecs-deploy:ci deploy
+
+      - name: Image sizes
+        if: always()
+        run: |
+          {
+            echo "### Image sizes"
+            echo
+            for img in claude-ecs-base:ci claude-ecs-deploy:ci; do
+              docker image ls "$img" --format '- `{{.Repository}}`: **{{.Size}}**' || true
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

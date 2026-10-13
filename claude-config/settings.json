@@ -1,0 +1,37 @@
+{
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
+    "MAX_THINKING_TOKENS": "16000",
+    "ENABLE_TOOL_SEARCH": "auto"
+  },
+  "model": "claude-sonnet-5-5",
+  "modelSettings": {
+    "claude-sonnet-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-haiku-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-sonnet-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5": {
+      "effortLevel": "medium"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "medium"
+    }
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "skillListingBudgetFraction": 0.03,
+  "hasCompletedOnboarding": true,
+  "hasAcknowledgedCostWarning": true,
+  "primaryApiKeySource": "environment",
+  "autoApproveApiKey": true
+}

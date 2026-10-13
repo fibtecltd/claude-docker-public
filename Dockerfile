@@ -1,118 +1,52 @@
 # ============================================================
-# Dockerfile  —  Claude Code development container
-# Location   :  ~/claude-docker/Dockerfile
-# Build ctx  :  ~/claude-docker/            ← self-contained
+# Claude Code images for headless runs on ECS Fargate
 #
-# No dependency on ~/projects/pyvar/ at build time.
-# Python packages installed from local copies of pyvar
-# requirements files. Sync them via: ./sync-requirements.sh
+# Two targets. Without --target Docker builds the last stage (ecs-deploy), so
+# always name the target you want:
+#   ecs-base    Claude Code + git/gh/jq + a Python 3.12 venv (pip, uv, pytest,
+#               ruff, boto3, awscli) + the plugins pinned in plugins.lock and
+#               the profiles that choose among them (CLAUDE_PROFILE)
+#   ecs-deploy  ecs-base + AWS CDK (CLI and Python lib) + Stripe CLI + SSM plugin
 #
-# The Numba JIT cache is NOT pre-warmed here — warmup only
-# matters for the production runtime image (pyvar/Dockerfile).
-# First pytest run compiles it (~2s); the numba_cache named
-# volume persists it across restarts.
+# No Numba, Ray, Dask, QuantLib or C toolchain; Python 3.12 comes from uv.
 #
-# Stages:
-#   python-builder  Compiles C extensions with build tools.
-#                   Build tools stripped from the final image.
-#   claude-dev      node:22-slim + Python 3.11 + Claude Code.
+# Build (BuildKit required; the GitHub token secret is optional):
+#   docker build --target ecs-base   -t claude-ecs-base .
+#   docker build --target ecs-deploy -t claude-ecs-deploy \
+#       --secret id=github_token,env=GITHUB_PERSONAL_ACCESS_TOKEN .
+#   pin Claude Code:  --build-arg CLAUDE_CODE_VERSION=x.y.z
 #
-# Build:
-#   docker compose build --no-cache
-#   docker compose build             (uses layer cache)
+# Run (no volumes, no entrypoint script; everything is baked in):
+#   docker compose run --rm claude-ecs-base -p "say hi"     (key read from .env)
+#   docker run --rm -e ANTHROPIC_API_KEY -e CLAUDE_PROFILE=pyvar claude-ecs-base -p "say hi"
+#   docker run --rm -it --entrypoint bash claude-ecs-base
 #
-# Force plugin reinstall:
-#   docker compose run --rm --entrypoint sh claude \
-#     -c "rm /home/claude/.claude/.plugins-installed"
-#
-# Required files in ~/claude-docker/ (build context):
-#   Dockerfile
-#   entrypoint.sh
-#   requirements-heavy.txt    ← sync via ./sync-requirements.sh
-#   requirements.txt          ← sync via ./sync-requirements.sh
-#   docker-compose.yml
-#   .env
-#   claude-backup/
+# Design notes:
+#   - runs as non-root `claude`: no gosu, and no chown/chmod/sed at container start
+#   - ENTRYPOINT is `ecs-claude`, a wrapper that adds the profile's plugins and
+#     execs claude: container args are still Claude Code args
+#   - plugins are plain directories fetched at pinned commits (no marketplace)
+#   - the GitHub token comes from a BuildKit secret mount, not ARG, so it never
+#     lands in image history (and therefore never in ECR)
+#   - minimal inline ~/.claude.json (no personal state); auto-updater disabled
 # ============================================================
 
+# ── Stage 1: ecs-base ─────────────────────────────────────────────
+FROM node:22-slim AS ecs-base
 
-# ── Stage 1: python-builder ───────────────────────────────────────
-# python:3.11-slim is Debian Bookworm. Build tools available here.
-# Packages installed to /install and copied to the final stage.
-FROM python:3.11-slim AS python-builder
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-WORKDIR /build
+# 2.1.293 is the first release that runs Haiku 5.5 (claude-haiku-5-5).
+ARG CLAUDE_CODE_VERSION=2.1.294
 
-# Build deps for C extensions
-# gcc / g++      — asyncpg, psycopg2, llvmlite (Numba)
-# libpq-dev      — PostgreSQL client headers
-# liblz4-dev     — PyArrow LZ4 codec (build time)
-# libsnappy-dev  — PyArrow Snappy codec (build time)
-# libzstd-dev    — PyArrow / Polars Zstandard codec (build time)
-# libssl-dev     — Ray TLS, boto3
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    libpq-dev \
-    liblz4-dev \
-    libsnappy-dev \
-    libzstd-dev \
-    libssl-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade pip setuptools wheel
-
-# Heavy packages in a separate layer.
-# Numba / Ray / QuantLib take 10-15 min — cached independently.
-COPY requirements-heavy.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements-heavy.txt
-
-# Application and dev packages.
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
-
-
-# ── Stage 2: claude-dev ───────────────────────────────────────────
-# node:22-slim is Debian Bookworm (amd64 / arm64).
-# Python 3.11 installed via apt — no pip calls at build time.
-# All Python packages come from python-builder via COPY --from.
-FROM node:22-slim AS claude-dev
-
-# System runtime packages
-#
-# python3.11    — interpreter (Debian Bookworm package, no compilation)
-# python3-pip   — pip command for runtime installs inside sessions;
-#                 NOT called at build time (avoids PEP 668 block)
-# gosu          — entrypoint.sh drops to non-root claude user
-# git           — Claude Code version control operations
-# libpq5        — asyncpg / psycopg2 runtime (no -dev headers needed)
-# liblz4-1      — PyArrow LZ4 codec runtime
-# libzstd1      — PyArrow / Polars Zstandard codec runtime
-#
-# Intentionally excluded:
-#   python3.11-dev   — no C extension compilation in this stage
-#   python3.11-venv  — not needed; all packages from python-builder
-#   libsnappy1       — renamed libsnappy1t64 in Bookworm; not needed
-#                      in dev (test fixtures use LZ4 or uncompressed)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 \
-    python3-pip \
     git \
     curl \
     ca-certificates \
-    gosu \
-    libpq5 \
-    liblz4-1 \
     jq \
-    libzstd1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
-    && update-alternatives --install /usr/bin/python  python  /usr/bin/python3.11 1
+    && rm -rf /var/lib/apt/lists/*
 
-# GitHub CLI (gh) — for issue filing, PR creation, and repo operations
-# from inside Claude Code sessions without needing the web UI.
-# Installed via the official GitHub apt repository (Debian Bookworm).
+# GitHub CLI — from the official apt repository.
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -122,11 +56,94 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
-# AWS Session Manager plugin — enables interactive `aws ssm start-session`
-# from inside Claude Code sessions (previously only `aws ssm send-command` +
-# get-command-invocation worked, requiring a slower request/poll pattern
-# during EC2 worker debugging). Architecture-aware: node:22-slim can be
-# amd64 or arm64 depending on host, so the .deb URL is selected accordingly.
+# Python 3.12 via uv (Debian Bookworm only ships 3.11). The interpreter is
+# installed outside any home directory so the non-root user can read it.
+# --seed gives the venv pip, so `pip install -r requirements.txt` keeps working
+# in sessions; `uv pip install` is the faster path.
+COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /uvx /usr/local/bin/
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:${PATH}
+RUN uv venv /opt/venv --python 3.12 --seed \
+    && uv pip install --python /opt/venv/bin/python awscli boto3 pytest ruff
+
+# Fixed uid so the BuildKit secret mount below can be handed to this user.
+RUN useradd --uid 1001 --create-home --shell /bin/bash claude \
+    && mkdir -p /workspace \
+    && chown claude:claude /workspace
+
+# Claude Code.
+RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
+    && npm cache clean --force
+
+# Plugins: plain directories under /opt/claude/plugins, each fetched at the
+# commit pinned in plugins.lock and owned by root (read-only for `claude`).
+# The script and lock are bind-mounted, so they leave no layer behind. The
+# optional token reaches git through environment config, never a file, and only
+# inside this RUN.
+RUN --mount=type=bind,source=plugins.lock,target=/tmp/plugins.lock \
+    --mount=type=bind,source=scripts/build/fetch-plugins.sh,target=/tmp/fetch-plugins.sh \
+    --mount=type=secret,id=github_token,required=false \
+    set -e; \
+    if [ -s /run/secrets/github_token ]; then \
+        token="$(cat /run/secrets/github_token)"; \
+        export GIT_CONFIG_COUNT=1 \
+            GIT_CONFIG_KEY_0="url.https://${token}@github.com/.insteadOf" \
+            GIT_CONFIG_VALUE_0="https://github.com/"; \
+    fi; \
+    bash /tmp/fetch-plugins.sh /tmp/plugins.lock /opt/claude/plugins
+
+# Profiles (which plugins a run loads) and the entrypoint wrapper.
+COPY profiles/ /opt/claude/profiles/
+COPY --chmod=0755 scripts/runtime/ecs-claude /usr/local/bin/ecs-claude
+
+# User-level Claude config: settings only (no agents, commands, skills or hooks;
+# those come from plugins and from the project being worked on). The minimal
+# ~/.claude.json is written inline so there is no personal state in the image.
+COPY --chown=claude:claude claude-config/ /home/claude/.claude/
+RUN printf '%s\n' '{"hasCompletedOnboarding":true,"autoUpdates":false,"theme":"dark","projects":{"/workspace":{"hasTrustDialogAccepted":true,"hasCompletedProjectOnboarding":true}}}' \
+        > /home/claude/.claude.json \
+    && chown claude:claude /home/claude/.claude.json
+
+USER claude
+
+ENV DISABLE_AUTOUPDATER=1 \
+    CLAUDE_CODE_SKIP_ONBOARDING=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /workspace
+ENTRYPOINT ["ecs-claude"]
+CMD []
+
+# ── Stage 2: ecs-deploy ───────────────────────────────────────────
+# ecs-base + what `cdk deploy` and the Stripe/SSM smoke scripts need.
+FROM ecs-base AS ecs-deploy
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+USER root
+
+RUN npm install -g aws-cdk \
+    && npm cache clean --force \
+    && uv pip install --python /opt/venv/bin/python aws-cdk-lib constructs
+
+# Stripe CLI — static binary from GitHub Releases. The version is pinned: no
+# api.github.com lookup, which is rate-limited for anonymous callers on shared
+# CI runners. Release assets name amd64 as x86_64 (not dpkg's "amd64"), so the
+# architecture is mapped explicitly.
+ARG STRIPE_CLI_VERSION=1.53.0
+RUN case "$(dpkg --print-architecture)" in \
+        amd64) STRIPE_ARCH=x86_64 ;; \
+        arm64) STRIPE_ARCH=arm64 ;; \
+        *) echo "Stripe CLI: unsupported architecture $(dpkg --print-architecture)" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/stripe.tar.gz \
+        "https://github.com/stripe/stripe-cli/releases/download/v${STRIPE_CLI_VERSION}/stripe_${STRIPE_CLI_VERSION}_linux_${STRIPE_ARCH}.tar.gz" \
+    && tar -xzf /tmp/stripe.tar.gz -C /usr/local/bin stripe \
+    && rm /tmp/stripe.tar.gz
+
+# AWS Session Manager plugin — amd64/arm64 selected by dpkg.
 RUN ARCH=$(dpkg --print-architecture) \
     && if [ "$ARCH" = "arm64" ]; then \
         SSM_URL="https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_arm64/session-manager-plugin.deb"; \
@@ -137,81 +154,4 @@ RUN ARCH=$(dpkg --print-architecture) \
     && dpkg -i /tmp/ssm-plugin.deb \
     && rm /tmp/ssm-plugin.deb
 
-# Symlink
-RUN ln -sf /usr/bin/python3.11 /usr/local/bin/python3.11
-
-# Non-root user for Claude Code
-RUN useradd --create-home --shell /bin/bash claude
-
-# Install Claude Code CLI
-RUN npm install -g @anthropic-ai/claude-code
-
-# Install Context7 MCP — live API docs for numpy, FastAPI, SQLAlchemy.
-# Prevents Claude Code from hallucinating function signatures.
-RUN npm install -g @upstash/context7-mcp
-
-# AWS CDK
-RUN npm install -g aws-cdk
-
-# Copy pre-built Python packages from python-builder.
-# All pyvar deps (NumPy, Numba, FastAPI, Celery, etc.) land here.
-# No pip calls needed in this stage.
-COPY --from=python-builder /install /usr/local
-
-# Add explicit install with --break-system-packages (overrides Debian PEP 668 protection)
-# This is intentional for deployment tooling, not application packages
-RUN pip install awscli boto3 aws-cdk-lib constructs pytest ruff --break-system-packages
-
-# Numba cache directory — populated on first import, NOT pre-warmed.
-# Persisted across restarts via the numba_cache named volume.
-RUN mkdir -p /home/claude/.cache/numba \
-    && chown -R claude:claude /home/claude/.cache
-
-# Copy Claude config (settings.json, hooks, skills, plugin tree).
-# Session history persists via claude_sessions volume.
-# Auth token persists via claude_persist volume (managed by entrypoint.sh).
-COPY --chown=claude:claude claude-backup/ /home/claude/.claude/
-
-# Copy Claude default settings.
-COPY --chown=claude:claude .claude.json /home/claude/.claude.json
-
-# Strip Windows-built node_modules from plugin tree.
-# install-plugins.sh (below) reinstalls the correct Linux binaries.
-RUN mkdir -p /home/claude/.claude/plugins \
-    && find /home/claude/.claude/plugins -type d -name "node_modules" \
-        -exec rm -rf {} + 2>/dev/null || true \
-    && chown -R claude:claude /home/claude/.claude/plugins
-
-# Plugins installed at build time via install-plugins.sh (see below)
-
-# /workspace is populated at runtime via bind-mount in docker-compose.yml.
-RUN mkdir -p /workspace && chown claude:claude /workspace
-
-# Entrypoint manages Claude Code plugins only.
-# Python packages are already installed via COPY --from=python-builder.
-# Never add pip install commands here.
-COPY install-plugins.sh /tmp/install-plugins.sh
-RUN chmod +x /tmp/install-plugins.sh
-ARG GITHUB_TOKEN
-RUN git config --global \
-        url."https://${GITHUB_TOKEN}@github.com/".insteadOf \
-        "https://github.com/" \
-    && gosu claude /tmp/install-plugins.sh \
-    && git config --global --unset-all \
-        url."https://${GITHUB_TOKEN}@github.com/".insteadOf \
-    && rm /tmp/install-plugins.sh
-
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENV NUMBA_CACHE_DIR=/home/claude/.cache/numba
-ENV NUMBA_DISABLE_JIT=0
-ENV RAY_DISABLE_IMPORT_WARNING=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/workspace/pyvar
-
-USER root
-WORKDIR /workspace
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD []
+USER claude

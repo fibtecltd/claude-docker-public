@@ -1,54 +1,45 @@
 # Contributing to claude-docker-public
 
-Thanks for considering a contribution. This repo is a public mirror — it
-does not accept direct pushes or merges into its own history the way a
-normal project would, so what "contributing" means here is a bit different.
-Read this before opening a PR.
+Thanks for considering a contribution. One thing differs from a usual project:
+this repository is an **export**. Fibtec maintains it in a private source
+repository, and a script copies that source here after checking it for secrets and
+for anything not meant to be public. Read this before opening a pull request.
 
-## How this repo is maintained
+## How a contribution travels
 
-`claude-docker-public` is generated from Fibtec's private `claude-docker`
-repo by `scripts/sync-to-public.sh`, which applies a sanitization policy
-(strips internal-project-specific config, replaces personal Claude Code
-telemetry with clean templates, runs a secret scan) before anything is
-pushed here. See that script (in the private repo) for the exact policy.
-
-This means:
-
-- A PR against this repo can be reviewed and merged here directly — that's
-  the normal path for anything scoped to this repo (Dockerfile, entrypoint,
-  scripts, `claude-backup/` content, docs).
-- Changes get folded back into the private original by hand
-  (`scripts/sync-from-public.sh`, additive-only, never overwrites the
-  private repo's real config) — so a merged PR here may take a little
-  longer to show up reflected everywhere than a normal single-repo project.
+- Open a pull request here as usual. It is reviewed here.
+- If it is accepted, a maintainer applies the same change to the source repository
+  before the next export, because an export replaces this repository's files (the
+  export's dry run shows any difference, so a change made only here is noticed).
+  The pull request is merged here so your commit stays in the history.
+- So a merged change can take a little longer than usual to be reflected in the
+  source, and a change that is not applied there would be undone by the next export.
+  If you notice that happening, say so in an issue.
+- Files that exist only here (`LICENSE`, `NOTICE`, `SECURITY.md`, this file, the
+  issue templates and `articles/`) are edited directly and are never overwritten.
 
 ## Ways to contribute
 
-- **Docker/build fixes** — `Dockerfile`, `docker-compose.yml`,
-  `entrypoint.sh`, `install-plugins.sh`.
-- **Claude Code configuration** — additions or fixes to `claude-backup/`
-  (agents, commands, skills, hooks). Note `claude-backup/settings.json`,
-  `claude-backup/config.json`, and `claude-backup/policy-limits.json` are
-  patched by the sync script from private-repo originals — a PR touching
-  those three specifically will need manual reconciliation on the private
-  side rather than a normal merge.
-- **Documentation** — `README.md`, `SETUP.md`, this file.
-- **Bug reports** — via a GitHub issue (see the templates).
+- **Image and build fixes**: `Dockerfile`, `docker-compose.yml`, `scripts/build/`,
+  `scripts/runtime/ecs-claude`.
+- **Infrastructure**: the CDK app in `infra/`, `scripts/run/run-task.sh` and
+  `docs/runbook.md`.
+- **Plugins and profiles**: `plugins.lock` pins, and a `profiles/<name>.plugins` file
+  for a new deployment.
+- **Documentation**: `README.md`, `docs/`, `infra/README.md`.
+- **Bug reports and ideas**: a GitHub issue (see the templates).
 
-## PR checklist
+## Pull request checklist
 
-- [ ] Doesn't reintroduce anything the sanitization policy strips (real
-      credentials, internal project names, personal telemetry — see
-      `scripts/public-mirror/lib.sh` in the private repo if you have access,
-      or just: nothing that isn't meant for a public audience).
-- [ ] Shell changes pass `bash -n <file>` at minimum.
-- [ ] If you're changing `Dockerfile`/`docker-compose.yml`, you've actually
-      run `docker compose build --no-cache claude` and
-      `docker compose run --rm claude` locally.
-- [ ] Commit messages are reasonably descriptive — no fixed convention is
-      enforced here, unlike the private repo's Conventional Commits rule.
+- [ ] Nothing that is not meant for a public audience: no credentials, account ids,
+      internal names or personal data.
+- [ ] Shell changes pass `shellcheck` (CI runs it on every script).
+- [ ] If you change the `Dockerfile` or a plugin pin, the image builds and
+      `scripts/ci/smoke-ecs.sh IMAGE base` passes (CI does both; a Docker build
+      needs BuildKit).
+- [ ] If you change `infra/`, `cd infra && python -m pytest` passes.
+- [ ] Commit messages say what changed and why. No format is enforced here.
 
 ## Questions
 
-Open a GitHub issue, or reach out at info@fibtec.co.uk.
+Open a GitHub issue, or write to info@fibtec.co.uk.
