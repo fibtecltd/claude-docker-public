@@ -1,0 +1,10 @@
+# Allowlist: the build only needs the paths the Dockerfile reads. Everything
+# else, including .git and .env, stays out of the build context (so it is not
+# sent to the builder, and cannot end up in an image).
+*
+!claude-config
+!profiles
+!plugins.lock
+!scripts/build/fetch-plugins.sh
+!scripts/runtime/ecs-claude
+**/.DS_Store

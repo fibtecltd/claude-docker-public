@@ -1,0 +1,30 @@
+# Plugins baked into the image, one per line: NAME REPO SHA PATH
+#
+# NAME  directory name under /opt/claude/plugins; must equal the "name" in the
+#       plugin's .claude-plugin/plugin.json (the fetch script checks this)
+# REPO  git URL to fetch from
+# SHA   full commit to fetch, so a build always gets the same bytes
+# PATH  plugin directory inside the repo ("." when the repo is the plugin)
+#
+# Which of these a run loads is decided by profiles/<name>.plugins, not here.
+# Change a pin with scripts/build/bump-plugin.sh; CI validates every entry.
+
+# anthropics/claude-plugins-official @ d4226d062928f8d9505dbdeadd10217d23361052
+superpowers       https://github.com/obra/superpowers.git                       5bf4e78011075bcfc0dc295f0724994cd123ee71  .
+github            https://github.com/anthropics/claude-plugins-official.git     d4226d062928f8d9505dbdeadd10217d23361052  external_plugins/github
+frontend-design   https://github.com/anthropics/claude-plugins-official.git     d4226d062928f8d9505dbdeadd10217d23361052  plugins/frontend-design
+
+# fibtecltd/claude-workflows (fork of wshobson/agents)
+comprehensive-review          https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/comprehensive-review
+security-scanning             https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/security-scanning
+python-development            https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/python-development
+unit-testing                  https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/unit-testing
+backend-development           https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/backend-development
+frontend-mobile-development   https://github.com/fibtecltd/claude-workflows.git  9b6b4c1254c42be711c1a58416201c9f78873ac8  plugins/frontend-mobile-development
+
+# fibtecltd/python-backend-plugins
+python            https://github.com/fibtecltd/python-backend-plugins.git       62a0c1cf8da56e54de9e550753e3cf783e7ee391  plugins/python
+fastapi           https://github.com/fibtecltd/python-backend-plugins.git       62a0c1cf8da56e54de9e550753e3cf783e7ee391  plugins/fastapi
+
+# fibtecltd/claude-skills
+karpathy-coder    https://github.com/fibtecltd/claude-skills.git                de6f5a4eb621ffd65538fbdbc7e552548366d3f9  engineering/karpathy-coder

@@ -1,3 +1,6 @@
 .env
 .DS_Store
-claude-backup/.DS_Store
+infra/cdk.out/
+infra/.venv/
+__pycache__/
+.pytest_cache/

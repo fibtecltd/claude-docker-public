@@ -1,0 +1,89 @@
+name: infra
+
+# Tests the CDK app in infra/ and synthesizes it in both egress modes, with
+# cfn-lint on each template; also lints the shell scripts that start and wrap
+# runs. Nothing is deployed and no AWS credentials are used. Runs when the app
+# or the profiles change (each profile becomes a task definition).
+#
+# Uses the runner's own Python and no third-party actions beyond checkout.
+
+on:
+  pull_request:
+    paths:
+      - infra/**
+      - profiles/**
+      - scripts/run/**
+      - scripts/runtime/**
+      - .github/workflows/infra.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cdk:
+    name: Test, synth and lint the CDK app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet -r requirements-dev.txt
+
+      - name: Tests
+        run: .venv/bin/python -m pytest -q
+
+      - name: Synth and lint, both egress modes
+        run: |
+          for mode in public nat; do
+            out="$RUNNER_TEMP/cdk-out-$mode"
+            CDK_OUTDIR="$out" CDK_CONTEXT_JSON="{\"egress\":\"$mode\",\"github_token\":true}" \
+              .venv/bin/python app.py
+            .venv/bin/cfn-lint "$out/claude-ecs.template.json"
+            echo "$mode: ok"
+          done
+
+  scripts:
+    name: Lint and dry-run the shell scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: shellcheck
+        run: shellcheck scripts/run/*.sh scripts/runtime/ecs-claude scripts/build/*.sh scripts/ci/*.sh
+
+      - name: run-task.sh builds a valid request (no AWS calls)
+        env:
+          CLAUDE_ECS_CLUSTER: claude-ecs
+          CLAUDE_ECS_SUBNETS: subnet-a,subnet-b
+          CLAUDE_ECS_SECURITY_GROUP: sg-1
+          CLAUDE_ECS_ASSIGN_PUBLIC_IP: ENABLED
+        run: |
+          scripts/run/run-task.sh --profile pyvar --repo fibtecltd/pyvar \
+            --prompt "line one
+          line two" --model claude-haiku-5-5 --effort max --max-turns 5 --max-budget-usd 1 \
+            --env A=b --spot --dry-run \
+            | jq -e '.taskDefinition == "claude-ecs-pyvar"
+                and .capacityProviderStrategy[0].capacityProvider == "FARGATE_SPOT"
+                and .overrides.containerOverrides[0].command[1] == "line one\nline two"
+                and (.overrides.containerOverrides[0].environment | length) == 2'
+          if scripts/run/run-task.sh --profile core --prompt hi --dry-run; then
+            echo "expected a refusal without cost caps" >&2; exit 1
+          fi
