@@ -103,4 +103,4 @@ scripts/deploy/ecs-in-docker.sh deploy
 scripts/deploy/ecs-in-docker.sh runs
 ```
 
-The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes the five runs above and prints the report. The repository and the runbook, with the timing table, are in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**.
+The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes five runs by default and prints the report: timings, cost, the answer scored against the facts above and the guardrail checks. Add `--groups G1,G2,G3,G4` for the eleven runs of this article. The repository and the runbook, with the timing table, are in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**.
