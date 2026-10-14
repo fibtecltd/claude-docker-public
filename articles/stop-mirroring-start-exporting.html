@@ -1,0 +1,392 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stop Mirroring Your Private Repo. Export It.</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a narrow reading column like the Medium editor; one copy bar above it that is not part of the copied text. */
+
+:root {
+  --bg: #f4f6f7; --paper: #ffffff; --ink: #1c2226; --muted: #58646d; --rule: #d9e0e4; --accent: #1d5f8a; --accent-ink: #ffffff;
+  --code-bg: #edf1f3; --box: #eef3f6; --line: #aebdc7; --warn: #9a4b00; --warn-bg: #fbeed6; --ok: #2b7a4b;
+  --amber: #d9962b; --s1: #bcd0dd; --s2: #8fb0c6; --s3: #5f8fb0; --s4: #d3dce2; --s5: #1d5f8a; --warm: #cfe0ec; --cold: #1d5f8a;
+
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --ui: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121618; --paper: #1a2023; --ink: #e5e9eb; --muted: #9aa7af; --rule: #2d363b; --accent: #7fb6dc; --accent-ink: #0e1417;
+  --code-bg: #232b2f; --box: #232b30; --line: #46545c; --warn: #f0b25a; --warn-bg: #3a2c14; --ok: #6fcf97;
+  --amber: #e8a94a; --s1: #3a5262; --s2: #4f7590; --s3: #6b9bbd; --s4: #2f3a41; --s5: #7fb6dc; --warm: #3b5365; --cold: #7fb6dc;
+ color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121618; --paper: #1a2023; --ink: #e5e9eb; --muted: #9aa7af; --rule: #2d363b; --accent: #7fb6dc; --accent-ink: #0e1417;
+  --code-bg: #232b2f; --box: #232b30; --line: #46545c; --warn: #f0b25a; --warn-bg: #3a2c14; --ok: #6fcf97;
+  --amber: #e8a94a; --s1: #3a5262; --s2: #4f7590; --s3: #6b9bbd; --s4: #2f3a41; --s5: #7fb6dc; --warm: #3b5365; --cold: #7fb6dc;
+ color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--serif); padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 780px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+.bar { font-family: var(--ui); font-size: 15px; line-height: 1.5; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center;
+  gap: 12px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.bar button { font: 600 15px/1 var(--ui); background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 12px 16px; cursor: pointer; }
+.bar button.second { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.bar button:hover { filter: brightness(1.08); }
+.bar button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.bar .msg { flex: 1 1 100%; min-width: 0; }
+.bar .msg strong { color: var(--ink); }
+.notes { font-family: var(--ui); font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 0; padding-left: 1.2em; }
+.notes li + li { margin-top: 4px; }
+.notes code { font-family: var(--mono); font-size: 0.9em; }
+details.files { font-family: var(--ui); font-size: 14px; color: var(--muted); }
+details.files summary { cursor: pointer; }
+details.files ul { margin: 6px 0 0; padding-left: 1.2em; font-family: var(--mono); font-size: 13px; }
+#story { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding-block: clamp(24px, 5vw, 48px);
+  padding-inline: clamp(18px, 6vw, 56px); font-size: clamp(18px, 2.4vw, 20px); line-height: 1.68; min-width: 0; overflow-wrap: anywhere; }
+#story h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.18; font-weight: 600; margin: 0 0 18px; text-wrap: balance; }
+#story h2 { font-size: clamp(22px, 3.4vw, 27px); line-height: 1.25; font-weight: 600; margin: 2.1em 0 0.5em; text-wrap: balance; }
+#story p, #story ul, #story ol { margin: 0 0 1.05em; }
+#story .deck { color: var(--muted); font-size: 1.05em; margin-bottom: 0.4em; }
+#story hr { border: 0; border-top: 1px solid var(--rule); margin: 1.4em 0; }
+#story li { margin-bottom: 0.5em; }
+#story a { color: var(--accent); text-underline-offset: 3px; }
+#story code { font-family: var(--mono); font-size: 0.82em; background: var(--code-bg); padding: 0.12em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+#story pre { background: var(--code-bg); border-radius: 6px; padding: 14px 16px; margin: 0 0 1.2em; overflow-x: auto; }
+#story pre code { background: none; padding: 0; font-size: 0.8em; overflow-wrap: normal; white-space: pre; }
+#story figure { margin: 1.6em 0; }
+#story figcaption { font-family: var(--ui); font-size: 15px; line-height: 1.45; color: var(--muted); text-align: center; margin-top: 10px; }
+#story figcaption code { font-size: 0.9em; }
+#story .fig > svg, #story .fig > table { max-width: 100%; }
+#story .fig { overflow-x: auto; }
+#story .photo { overflow: visible; }
+#story .photo img { display: block; width: 100%; height: auto; border-radius: 6px; }
+.slot-box { aspect-ratio: 2 / 1; width: 100%; box-sizing: border-box; border: 2px dashed var(--line); border-radius: 8px; background: var(--box);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--ui); text-align: center; padding: 12px; }
+.slot-title { font-size: 20px; font-weight: 600; color: var(--ink); }
+.slot-note { font-size: 14px; color: var(--muted); }
+
+.fig svg { display: block; width: 100%; height: auto; min-width: 600px; }
+.fig .bx { fill: var(--box); stroke: var(--line); stroke-width: 1.5; }
+.fig .bx-acc { stroke: var(--accent); stroke-width: 2.5; }
+.fig .bx-end { stroke: var(--accent); stroke-width: 1.5; }
+.fig .bx-warn { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1.5; }
+.fig .bx-dash { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.fig .tt { fill: var(--ink); font: 600 17px var(--ui); }
+.fig .tl { fill: var(--muted); font: 400 14.5px var(--ui); }
+.fig .tv { fill: var(--ink); font: 600 14.5px var(--ui); }
+.fig .warn-t { fill: var(--warn); }
+.fig .on-dark { fill: var(--accent-ink); font-weight: 600; }
+.fig .ln { stroke: var(--muted); stroke-width: 2; fill: none; }
+.fig .ln.thin { stroke-width: 1.2; }
+.fig .ln.dash { stroke-dasharray: 6 5; stroke: var(--warn); }
+.fig .ahead { fill: var(--muted); }
+.fig .s1 { fill: var(--s1); } .fig .s2 { fill: var(--s2); } .fig .s3 { fill: var(--s3); }
+.fig .s4 { fill: var(--s4); } .fig .s5 { fill: var(--s5); } .fig .s6 { fill: var(--amber); }
+.fig .warm { fill: var(--warm); stroke: var(--cold); stroke-width: 1.5; } .fig .cold { fill: var(--cold); }
+.fig table.tbl { border-collapse: collapse; width: 100%; min-width: 600px; font-family: var(--ui); font-size: 16px; line-height: 1.4; color: var(--ink); }
+.fig .tbl th { text-align: left; font-weight: 600; font-size: 14px; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--ink); }
+.fig .tbl td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.fig .tbl .n { text-align: right; font-variant-numeric: tabular-nums; }
+.fig .tbl code { white-space: nowrap; font-family: var(--mono); font-size: 0.86em; background: var(--code-bg); padding: 0.1em 0.3em; border-radius: 4px; }
+.fig .ok { color: var(--ok); font-weight: 600; }
+
+</style></head><body>
+<div class="wrap">
+  <div class="bar">
+    <button id="copy-img" type="button">Copy for Medium, figures as images</button>
+    <button id="copy-txt" type="button" class="second">Copy text with image markers</button>
+    <div class="msg" id="status" role="status" aria-live="polite">Copies the article below as formatted text, then paste it into a new Medium story.</div>
+  </div>
+  <ul class="notes">
+    <li>Medium has no tables, so every table and diagram is a PNG, and the two illustrations are JPEGs. The first button pastes all of them as links to the files in the repository; Medium usually fetches them. The second leaves a marker line where each one goes.</li>
+    <li>The header image slot at the top is not copied: add your image in Medium.</li>
+  </ul>
+  <details class="files"><summary>The 10 image files, in order of appearance</summary><ul><li>fiery-genius-facing-the-mirror.jpg</li><li>fiery-genius-ready-for-export.jpg</li><li>f1-export-pipeline.png</li><li>f2-a-run-on-fargate.png</li><li>f4-five-runs.png</li><li>f3-one-run-timeline.png</li><li>f5-cost-of-one-run.png</li><li>f6-cost-per-model.png</li><li>f7-rubric.png</li><li>f8-guardrails.png</li></ul></details>
+  <article id="story">
+<h1>Stop Mirroring Your Private Repo. Export It. (Plus the First Numbers From Running It on Fargate)</h1>
+<figure class="header-slot" data-nocopy><div class="slot-box"><span class="slot-title">Header image</span><span class="slot-note">1500 × 750 px, 2:1. Add it in Medium; this box is not copied.</span></div></figure>
+<p class="deck"><em>How claude-docker-public is produced now, and what its first runs on ECS looked like.</em></p>
+<hr>
+<p><strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong> is the open-source half of the container setup we run Claude Code in. Until recently it was a mirror of a private repository. It is now an export, and the difference is bigger than the word.</p>
+<p>This post has two parts: why we replaced the mirror and how the export works, then what happened the first time we ran the exported design headless on AWS Fargate, with the numbers.</p>
+<h2>A mirror's default is "everything crosses"</h2>
+<p>A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.</p>
+<figure class="fig photo" data-img="fiery-genius-facing-the-mirror.jpg" data-alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/fiery-genius-facing-the-mirror.jpg" alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it." loading="lazy"><figcaption>The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.</figcaption></figure>
+<p>The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one <code>--delete</code> away from vanishing.</p>
+<p>So we turned it around. <strong>The private repo stays the source. The public repo is a product built from it.</strong></p>
+<h2>What an export does instead</h2>
+<figure class="fig photo" data-img="fiery-genius-ready-for-export.jpg" data-alt="A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/fiery-genius-ready-for-export.jpg" alt="A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk." loading="lazy"><figcaption>The Fiery Genius — Ready for Export. AI-generated illustration.</figcaption></figure>
+<ol>
+<li><strong>It starts from what is committed.</strong> <code>git archive HEAD</code>, not the working directory. A source with uncommitted changes is refused.</li>
+<li><strong>It sanitises.</strong> Some paths never cross: the export tooling itself, private deployment settings, profiles that name private projects. Lines matching deny patterns are dropped from the README, and fenced blocks marked as private are cut out. An unbalanced fence aborts the export.</li>
+<li><strong>It scans, and aborts instead of warning.</strong> API-key and token shapes, cloud ARNs that carry an account id, and the names of private projects. One hit and nothing is exported.</li>
+<li><strong>It writes one commit on a new branch</strong> from the public <code>main</code>, with <code>rsync --checksum --delete</code> that protects the files that only exist publicly. Review happens as an ordinary pull request on the public side. Exporting the same source twice changes nothing.</li>
+<li><strong>CI runs it as a dry run</strong> on pull requests: <code>--check</code> writes nothing and lists what would change.</li>
+</ol>
+<figure class="fig" data-img="f1-export-pipeline.png" data-alt="The export pipeline: private repo, committed state, sanitise, scan, one commit on a new branch, public repo. A hit in the scan aborts the export."><svg viewBox="0 0 760 384" role="img" aria-label="The export pipeline: private repo, committed state, sanitise, scan, one commit, public repo; any scan hit aborts" xmlns="http://www.w3.org/2000/svg"><defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ahead"/></marker></defs>
+<rect x="0" y="20" width="200" height="96" rx="8" class="bx"/>
+<text x="14" y="50" class="tt" text-anchor="start">Private repo</text>
+<text x="14" y="74" class="tl" text-anchor="start">the source of truth</text>
+<text x="14" y="94" class="tl" text-anchor="start">stays private</text>
+<rect x="280" y="20" width="200" height="96" rx="8" class="bx"/>
+<text x="294" y="50" class="tt" text-anchor="start">1 · Committed state</text>
+<text x="294" y="74" class="tl" text-anchor="start">git archive HEAD</text>
+<text x="294" y="94" class="tl" text-anchor="start">a dirty tree is refused</text>
+<rect x="560" y="20" width="200" height="96" rx="8" class="bx"/>
+<text x="574" y="50" class="tt" text-anchor="start">2 · Sanitise</text>
+<text x="574" y="74" class="tl" text-anchor="start">paths that never cross</text>
+<text x="574" y="94" class="tl" text-anchor="start">deny lines, fenced blocks</text>
+<path d="M200 68 H278" class="ln" marker-end="url(#a1)"/>
+<path d="M480 68 H558" class="ln" marker-end="url(#a1)"/>
+<path d="M660 116 V150 H100 V182" class="ln" marker-end="url(#a1)"/>
+<rect x="0" y="184" width="200" height="96" rx="8" class="bx bx-acc"/>
+<text x="14" y="214" class="tt" text-anchor="start">3 · Scan</text>
+<text x="14" y="238" class="tl" text-anchor="start">keys, tokens, account ids</text>
+<text x="14" y="258" class="tl" text-anchor="start">names of private projects</text>
+<rect x="280" y="184" width="200" height="96" rx="8" class="bx"/>
+<text x="294" y="214" class="tt" text-anchor="start">4 · One commit</text>
+<text x="294" y="238" class="tl" text-anchor="start">on a new branch from</text>
+<text x="294" y="258" class="tl" text-anchor="start">the public main (rsync)</text>
+<rect x="560" y="184" width="200" height="96" rx="8" class="bx bx-end"/>
+<text x="574" y="214" class="tt" text-anchor="start">Public repo</text>
+<text x="574" y="238" class="tl" text-anchor="start">reviewed as a pull</text>
+<text x="574" y="258" class="tl" text-anchor="start">request, then merged</text>
+<path d="M200 232 H278" class="ln" marker-end="url(#a1)"/>
+<path d="M480 232 H558" class="ln" marker-end="url(#a1)"/>
+<path d="M100 280 V312" class="ln" marker-end="url(#a1)"/>
+<rect x="0" y="314" width="200" height="54" rx="8" class="bx bx-warn"/>
+<text x="14" y="337" class="tt warn-t" text-anchor="start">Any hit: abort</text>
+<text x="14" y="357" class="tl" text-anchor="start">nothing is exported</text>
+<rect x="240" y="314" width="520" height="54" rx="8" class="bx-dash"/>
+<text x="256" y="337" class="tl" text-anchor="start">CI runs steps 1 to 3 as a dry run (--check) on every pull request:</text>
+<text x="256" y="357" class="tl" text-anchor="start">it writes nothing and lists what would change.</text></svg><figcaption>The export, step by step. Anything the scan finds stops it before anything reaches the public clone.</figcaption></figure>
+<p>One time the scan fired in CI it was on our own test data: a made-up twelve-digit account id inside an ARN in a test fixture. A false positive, and the right kind to have. We changed the fixture, not the rule.</p>
+<h2>Then we ran it on Fargate</h2>
+<p>The exported design runs Claude Code headless on ECS Fargate: one task per run, nothing standing between runs (the idle cost is image storage), plugins baked into the image at pinned commits, a profile that picks which ones load. Every run must carry a turn cap and a budget cap. The task role is empty and the security group allows outbound HTTPS only.</p>
+<figure class="fig" data-img="f2-a-run-on-fargate.png" data-alt="A run on Fargate: the image in ECR, one task per run with an empty role and HTTPS-only egress to the Anthropic API, GitHub and other sites, logs in CloudWatch. Everything but HTTPS is blocked."><svg viewBox="0 0 760 430" role="img" aria-label="A run on Fargate: the image in ECR, one task per run with an empty role and HTTPS-only egress to the Anthropic API, GitHub and other sites, logs in CloudWatch; everything but HTTPS is blocked" xmlns="http://www.w3.org/2000/svg"><defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ahead"/></marker></defs>
+<rect x="0" y="40" width="170" height="330" rx="10" class="bx-dash"/>
+<text x="14" y="66" class="tt" text-anchor="start">Your machine</text>
+<text x="14" y="86" class="tl" text-anchor="start">Docker, no AWS CLI</text>
+<rect x="14" y="108" width="142" height="92" rx="8" class="bx"/>
+<text x="26" y="136" class="tt" text-anchor="start">deploy</text>
+<text x="26" y="158" class="tl" text-anchor="start">build, check,</text>
+<text x="26" y="178" class="tl" text-anchor="start">push the image</text>
+<rect x="14" y="238" width="142" height="92" rx="8" class="bx"/>
+<text x="26" y="266" class="tt" text-anchor="start">runs</text>
+<text x="26" y="288" class="tl" text-anchor="start">start tasks,</text>
+<text x="26" y="308" class="tl" text-anchor="start">write the report</text>
+<rect x="236" y="10" width="290" height="410" rx="10" class="bx-dash"/>
+<text x="250" y="34" class="tl" text-anchor="start">AWS account</text>
+<rect x="250" y="52" width="262" height="76" rx="8" class="bx"/>
+<text x="264" y="82" class="tt" text-anchor="start">ECR</text>
+<text x="264" y="106" class="tl" text-anchor="start">the image, plugins pinned</text>
+<rect x="250" y="178" width="262" height="124" rx="8" class="bx bx-acc"/>
+<text x="264" y="208" class="tt" text-anchor="start">Fargate task, one per run</text>
+<text x="264" y="234" class="tl" text-anchor="start">empty task role</text>
+<text x="264" y="254" class="tl" text-anchor="start">outbound HTTPS only</text>
+<text x="264" y="274" class="tl" text-anchor="start">turn and budget caps</text>
+<rect x="250" y="348" width="262" height="60" rx="8" class="bx"/>
+<text x="264" y="378" class="tt" text-anchor="start">CloudWatch logs</text>
+<text x="264" y="402" class="tl" text-anchor="start">kept 30 days</text>
+<rect x="580" y="40" width="180" height="342" rx="10" class="bx-dash"/>
+<text x="594" y="66" class="tt" text-anchor="start">Outside AWS</text>
+<rect x="594" y="90" width="152" height="52" rx="8" class="bx"/>
+<text x="608" y="122" class="tt" text-anchor="start">Anthropic API</text>
+<rect x="594" y="152" width="152" height="52" rx="8" class="bx"/>
+<text x="608" y="174" class="tt" text-anchor="start">GitHub</text>
+<text x="608" y="193" class="tl" text-anchor="start">repository clone</text>
+<rect x="594" y="214" width="152" height="52" rx="8" class="bx"/>
+<text x="608" y="236" class="tt" text-anchor="start">Any other site</text>
+<text x="608" y="255" class="tl" text-anchor="start">over HTTPS</text>
+<rect x="594" y="284" width="152" height="82" rx="8" class="bx bx-warn"/>
+<text x="608" y="310" class="tt warn-t" text-anchor="start">Other ports</text>
+<text x="608" y="332" class="tl" text-anchor="start">blocked: port 80</text>
+<text x="608" y="350" class="tl" text-anchor="start">timed out</text>
+<path d="M156 154 H214 V90 H248" class="ln" marker-end="url(#a2)"/>
+<text x="178" y="146" class="tl" text-anchor="start">push</text>
+<path d="M156 284 H214 V240 H248" class="ln" marker-end="url(#a2)"/>
+<text x="178" y="276" class="tl" text-anchor="start">run</text>
+<path d="M381 128 V176" class="ln" marker-end="url(#a2)"/>
+<text x="370" y="148" class="tl" text-anchor="end">pulled for every</text>
+<text x="370" y="166" class="tl" text-anchor="end">task, about 15 s</text>
+<path d="M381 302 V346" class="ln" marker-end="url(#a2)"/>
+<path d="M512 214 H568" class="ln"/>
+<path d="M568 116 V240" class="ln"/>
+<text x="516" y="206" class="tl" text-anchor="start">HTTPS</text>
+<path d="M568 116 H592" class="ln" marker-end="url(#a2)"/>
+<path d="M568 178 H592" class="ln" marker-end="url(#a2)"/>
+<path d="M568 240 H592" class="ln" marker-end="url(#a2)"/>
+<path d="M512 290 L592 322" class="ln dash" marker-end="url(#a2)"/></svg><figcaption>One task per run. It can reach HTTPS sites, the Anthropic API and GitHub for the clone among them, and nothing else.</figcaption></figure>
+<p>We deployed it into an AWS account that also runs production pipelines, so the deploy script reads before it writes. Nine checks come back GO or NO-GO, the CDK diff must be create-only, <code>cdk bootstrap</code> is never run, and afterwards the account is compared with a baseline taken before. Result: 40 new items in the diff, none changed or removed, the bootstrap stack untouched, no pipeline execution started.</p>
+<h2>The first numbers</h2>
+<p>We ran it twice: five runs, then eleven with cost capture. The second set, on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5) unless stated.</p>
+<figure class="fig" data-img="f4-five-runs.png" data-alt="A table of the five runs: start-up, run phase, turns and cost for each."><table class="tbl"><thead><tr><th class="">Run</th><th class="n">Start-up</th><th class="n">Run phase</th><th class="n">Turns</th><th class="n">Cost</th></tr></thead><tbody><tr class=""><td class="">One-word answer, first run</td><td class="n">32 s</td><td class="n">29 s</td><td class="n">1</td><td class="n">$0.0955</td></tr><tr class=""><td class="">The same, again</td><td class="n">31 s</td><td class="n">28 s</td><td class="n">1</td><td class="n">$0.0077</td></tr><tr class=""><td class="">Question about pyvar, repo cloned</td><td class="n">32 s</td><td class="n">42 s</td><td class="n">3</td><td class="n">$0.1615</td></tr><tr class=""><td class="">Capped at $0.05</td><td class="n">31 s</td><td class="n">35 s</td><td class="n">3</td><td class="n">$0.0680</td></tr><tr class=""><td class="">Four shell commands</td><td class="n">31 s</td><td class="n">49 s</td><td class="n">5</td><td class="n">$0.0803</td></tr></tbody></table><figcaption>The five runs.</figcaption></figure>
+<p>(Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own <code>total_cost_usd</code>, a client-side estimate of API spend only; Fargate time is billed separately.)</p>
+<figure class="fig" data-img="f3-one-run-timeline.png" data-alt="The 66 seconds of the capped run: provisioning 12 s, image pull 15 s, container start about 4 s, then 27 s outside the model session and 7.7 s of model session."><svg viewBox="0 36 760 214" role="img" aria-label="Where the 66 seconds of the capped run went: provisioning 12 s, image pull 15 s, container start about 4 s, 27 s outside the model session and 7.7 s of model session" xmlns="http://www.w3.org/2000/svg"><rect x="30.0" y="92" width="127.3" height="46" class="s1"/>
+<rect x="157.3" y="92" width="159.1" height="46" class="s2"/>
+<rect x="316.4" y="92" width="42.4" height="46" class="s3"/>
+<rect x="358.8" y="92" width="289.5" height="46" class="s4"/>
+<rect x="648.3" y="92" width="81.7" height="46" class="s5"/>
+<path d="M30.0 80 V72 H358.8 V80" class="ln"/>
+<text x="194.3939393939394" y="58" class="tt" text-anchor="middle">start-up 31 s</text>
+<path d="M360.8 80 V72 H730.0 V80" class="ln"/>
+<text x="544.3939393939394" y="58" class="tt" text-anchor="middle">run phase 35 s</text>
+<text x="93.63636363636363" y="168" class="tl" text-anchor="middle">provisioning</text>
+<text x="93.63636363636363" y="188" class="tv" text-anchor="middle">12 s</text>
+<text x="236.8181818181818" y="168" class="tl" text-anchor="middle">image pull</text>
+<text x="236.8181818181818" y="188" class="tv" text-anchor="middle">15 s</text>
+<path d="M337.6 138 V196" class="ln thin"/>
+<text x="337.57575757575756" y="214" class="tl" text-anchor="middle">container start</text>
+<text x="337.57575757575756" y="234" class="tv" text-anchor="middle">about 4 s</text>
+<text x="503.5606060606061" y="168" class="tl" text-anchor="middle">outside the model session</text>
+<text x="503.5606060606061" y="188" class="tv" text-anchor="middle">27.3 s</text>
+<text x="730.0" y="168" class="tl" text-anchor="end">model session</text>
+<text x="730.0" y="188" class="tv" text-anchor="end">7.7 s</text></svg><figcaption>Where the 66 seconds of the capped run went. Container start is what is left of the 31-second start-up; the model session time is Claude Code's own.</figcaption></figure>
+<ul>
+<li><strong>About 32 seconds to a running container</strong> (30 to 36 over all sixteen runs), almost half of it image pull. A one-word task is about a minute from command to exit.</li>
+<li><strong>There is no warm start.</strong> Fargate pulls the image for every task. The second run was not faster than the first.</li>
+<li><strong>The run phase is not the model.</strong> A one-word answer took 28 to 30 seconds on every model we tried, Opus and Haiku included. One run reported its own session time: 7.7 seconds inside a 35-second run phase. So most of the run phase is outside the model session: Claude Code and its plugins starting, and exiting.</li>
+</ul>
+<p>Each row is one sample. Read these as orders of magnitude, not benchmarks.</p>
+<h2>What a run costs</h2>
+<p>Eleven runs cost <strong>$0.99</strong> against caps that added up to $3.55.</p>
+<p>The capped run printed its token counts, and the cost Claude Code reported reproduces from them. It produced 671 output tokens, read 26,641 tokens from the prompt cache and wrote 22,395 to it. At $2 and $10 per million tokens for Sonnet 5.5, with cache writes at 1.25x and cache reads at 0.1x, that is $0.0067 for the answer, $0.0053 for cache reads and $0.0560 for cache writes. They add up to the reported $0.0680. <strong>Eighty-two percent of the cost was writing the starting context. Ten percent was the answer.</strong></p>
+<p>One caveat on that arithmetic. Anthropic's pricing page lists Sonnet 5.5 cache reads at 0.05x, not 0.1x, and Claude Code's figure is an estimate from its own price table. At the page's rates, with five-minute cache writes, the same tokens come to $0.0654, and cache writes are 86 percent of it. The conclusion does not change.</p>
+<figure class="fig" data-img="f5-cost-of-one-run.png" data-alt="The $0.0680 of the capped run: 82 percent cache writes, 8 percent cache reads, 10 percent output."><svg viewBox="0 34 760 216" role="img" aria-label="The $0.0680 of the capped run: 82 percent cache writes, 8 percent cache reads, 10 percent output" xmlns="http://www.w3.org/2000/svg"><rect x="30.0" y="70" width="576.1" height="46" class="s5"/>
+<rect x="606.1" y="70" width="54.8" height="46" class="s2"/>
+<rect x="660.9" y="70" width="69.0" height="46" class="s6"/>
+<text x="30.0" y="52" class="tt" text-anchor="start">$0.0680 for the whole run</text>
+<text x="46.0" y="98" class="tl on-dark" text-anchor="start">writing the starting context to the cache</text>
+<text x="46.0" y="116" class="tl" text-anchor="start"></text>
+<text x="46.0" y="150" class="tv" text-anchor="start">22,395 tokens written: $0.0560, 82%</text>
+<path d="M633.5 116 V176" class="ln thin"/>
+<text x="639.502881829554" y="194" class="tv" text-anchor="end">26,641 tokens read from the cache: $0.0053, 8%</text>
+<path d="M695.4 116 V214" class="ln thin"/>
+<text x="701.4371546545112" y="232" class="tv" text-anchor="end">671 tokens of answer: $0.0067, 10%</text></svg><figcaption>What the $0.0680 was made of.</figcaption></figure>
+<p>Two consequences:</p>
+<ul>
+<li><strong>The first call pays, the next ones do not.</strong> A one-word answer cost $0.0955 the first time and $0.0077 both times after, a few minutes later.</li>
+<li><strong>Set a cap above the starting context.</strong> A cold one-word run already cost more than the $0.05 cap we used for the cap test, so that cap would have stopped any task. The run ended at $0.068, 36 percent over: a cap ends the run after the turn that crosses it, not to the cent.</li>
+</ul>
+<h2>Six models, one word</h2>
+<p>The same prompt on each model, no errors and no rate limits, every one answered <code>ok</code> with exit 0:</p>
+<figure class="fig" data-img="f6-cost-per-model.png" data-alt="The cost of the same one-word prompt on six models, from $0.0018 for Haiku 5.5 at effort max to $0.2450 for Opus 5, with warm and cold cache marked."><svg viewBox="0 0 760 300" role="img" aria-label="Cost of the same one-word prompt on six models, from $0.0018 for Haiku 5.5 at effort max to $0.2450 for Opus 5, with cold and warm cache marked" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="6" width="16" height="16" class="cold"/>
+<text x="24" y="19" class="tl" text-anchor="start">first call on that model (cold cache)</text>
+<rect x="330" y="6" width="16" height="16" class="warm"/>
+<text x="354" y="19" class="tl" text-anchor="start">model called minutes earlier (warm)</text>
+<text x="184" y="70" class="tl" text-anchor="end">Opus 5</text>
+<rect x="196" y="50" width="465.5" height="28" class="cold"/>
+<text x="669.5" y="70" class="tv" text-anchor="start">$0.2450</text>
+<text x="184" y="110" class="tl" text-anchor="end">Opus 5.5</text>
+<rect x="196" y="90" width="359.7" height="28" class="cold"/>
+<text x="563.6700000000001" y="110" class="tv" text-anchor="start">$0.1893</text>
+<text x="184" y="150" class="tl" text-anchor="end">Sonnet 5</text>
+<rect x="196" y="130" width="241.3" height="28" class="cold"/>
+<text x="445.3" y="150" class="tv" text-anchor="start">$0.1270</text>
+<text x="184" y="190" class="tl" text-anchor="end">Sonnet 5.5</text>
+<rect x="196" y="170" width="14.6" height="28" class="warm"/>
+<text x="218.63" y="190" class="tv" text-anchor="start">$0.0077</text>
+<text x="184" y="230" class="tl" text-anchor="end">Haiku 5.5</text>
+<rect x="196" y="210" width="9.3" height="28" class="cold"/>
+<text x="213.31" y="230" class="tv" text-anchor="start">$0.0049</text>
+<text x="184" y="270" class="tl" text-anchor="end">Haiku 5.5, effort max</text>
+<rect x="196" y="250" width="3.4" height="28" class="warm"/>
+<text x="207.42" y="270" class="tv" text-anchor="start">$0.0018</text>
+<path d="M196 44 V282" class="ln thin"/></svg><figcaption>The same prompt on six models. Dark bars paid to write the cache; light bars read one written minutes earlier.</figcaption></figure>
+<p>Do not read this as a price list. The cheap rows are the ones with a warm cache; the others paid to write it, so the bar colour matters as much as the length. What it does show: the choice of model moved the cost by more than an order of magnitude, even between two first calls ($0.0049 for Haiku 5.5, $0.2450 for Opus 5), and the run time by about two seconds.</p>
+<h2>Did it do the job?</h2>
+<p>We scored the runs two ways.</p>
+<p><strong>The answer.</strong> The pyvar run asked how the Monte Carlo engine gets its random numbers. We wrote down six facts from the real <code>engine/montecarlo.py</code> first: the draw happens in Python outside the Numba kernel, it uses <code>np.random.randn</code>, it names <code>_draw_random_shocks</code>, it names the kernel <code>_simulate_paths</code>, the numbers reach the kernel as an argument, the seed is applied with <code>np.random.seed</code>. The answer contained all six, <strong>6 out of 6</strong>, in both of our runs. In the second run every line reference we checked by hand was right. (In the first run one was off by a single line.)</p>
+<figure class="fig" data-img="f7-rubric.png" data-alt="The six facts from the real file, each found in the answer: 6 out of 6."><table class="tbl"><thead><tr><th class="">A fact from the real file</th><th class="">In the answer</th></tr></thead><tbody><tr class=""><td class="">The draw happens in Python, outside the Numba kernel</td><td class=""><span class="ok">yes</span></td></tr><tr class=""><td class="">It uses <code>np.random.randn</code></td><td class=""><span class="ok">yes</span></td></tr><tr class=""><td class="">It names <code>_draw_random_shocks</code></td><td class=""><span class="ok">yes</span></td></tr><tr class=""><td class="">It names the kernel <code>_simulate_paths</code></td><td class=""><span class="ok">yes</span></td></tr><tr class=""><td class="">The numbers reach the kernel as an argument</td><td class=""><span class="ok">yes</span></td></tr><tr class=""><td class="">The seed is applied with <code>np.random.seed</code></td><td class=""><span class="ok">yes</span></td></tr></tbody></table><figcaption>Six facts from the real <code>engine/montecarlo.py</code>, each looked for in the answer.</figcaption></figure>
+<p>That is one question and a pattern match, so it says the agent found the right file in a fresh clone and described it correctly, not that it is good in general.</p>
+<p><strong>The guardrails.</strong> <strong>All eleven runs of the second set behaved as designed.</strong></p>
+<figure class="fig" data-img="f8-guardrails.png" data-alt="The guardrails as designed and as seen: spend cap, task role, HTTPS, HTTP, and the deploy into a shared account."><table class="tbl"><thead><tr><th class="">Check</th><th class="">Designed behaviour</th><th class="">What we saw</th></tr></thead><tbody><tr class=""><td class="">Spend cap of $0.05</td><td class="">Stops the run</td><td class=""><code>Reached maximum budget ($0.05)</code>, exit 1, at $0.0680</td></tr><tr class=""><td class="">Task role</td><td class="">Exists, has no permissions</td><td class=""><code>sts get-caller-identity</code> shows the role; <code>s3 ls</code> is denied</td></tr><tr class=""><td class="">HTTPS, port 443</td><td class="">Open</td><td class=""><code>200</code></td></tr><tr class=""><td class="">HTTP, port 80</td><td class="">Blocked</td><td class="">Timed out after 8 s</td></tr><tr class=""><td class="">Deploy into a shared account</td><td class="">Create-only; nothing else moves</td><td class="">40 new items, 0 changed; bootstrap stack and pipelines untouched</td></tr></tbody></table><figcaption>What we designed, and what we saw.</figcaption></figure>
+<p><strong>What we did not measure:</strong> three tasks at once, Spot, and the answer quality of the models on anything harder than one word.</p>
+<h2>Try it</h2>
+<p>You need Docker and AWS credentials, not the AWS CLI:</p>
+<pre><code>scripts/deploy/ecs-in-docker.sh deploy
+scripts/deploy/ecs-in-docker.sh runs</code></pre>
+<p>The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes five runs by default and prints the report: timings, cost, the answer scored against the facts above and the guardrail checks. Add <code>--groups G1,G2,G3,G4</code> for the eleven runs of this article. The repository and the runbook, with the timing table, are in <strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong>.</p>
+<h2>Sources</h2>
+<p>The measurements are ours: sixteen runs on one AWS account, one sample each, with the scripts that made them and the timing table in the repository. Everything else comes from the pages below, which we checked on 14 October 2026.</p>
+<p><strong>Claude Code and Anthropic</strong></p>
+<ul>
+<li><a href="https://code.claude.com/docs/en/headless">Run Claude Code programmatically</a>: headless <code>claude -p</code> and <code>--output-format json</code>, the <code>total_cost_usd</code> field.</li>
+<li><a href="https://code.claude.com/docs/en/agent-sdk/cost-tracking">Track cost and usage</a>: <code>total_cost_usd</code> is a client-side estimate, not billing data; a run that crosses its budget counts the response that crossed it; cache entries last five minutes by default.</li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching</a>: cache writes at 1.25 times the input price, reads at 0.1 times, with lower read rates on some models.</li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Pricing</a>: the per-model prices behind the cost figures; Sonnet 5.5 at $2 and $10 per million tokens, cache reads at $0.10.</li>
+</ul>
+<p><strong>AWS and tools</strong></p>
+<ul>
+<li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html">Amazon ECS task networking for Fargate</a>: a task's network interface, security groups, and the public IP a task needs to pull its image without a NAT gateway.</li>
+<li><a href="https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html">AWS CDK bootstrapping</a>: what <code>cdk bootstrap</code> provisions, and why the deploy script never runs it.</li>
+<li><a href="https://git-scm.com/docs/git-archive">git archive</a>: an archive of a named tree, so only what is committed.</li>
+<li><a href="https://download.samba.org/pub/rsync/rsync.html">rsync(1)</a>: <code>--checksum</code> and <code>--delete</code>.</li>
+</ul>
+<p><strong>This project</strong></p>
+<ul>
+<li><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a>: the repository.</li>
+<li><a href="https://github.com/fibtecltd/claude-docker-public/blob/main/docs/runbook.md">The runbook</a>: the timing tables, cost per run, model matrix and findings.</li>
+<li><a href="https://github.com/fibtecltd/claude-docker-public/blob/main/scripts/deploy/ecs-in-docker.sh"><code>ecs-in-docker.sh</code></a> and <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/scripts/run/first-runs.sh"><code>first-runs.sh</code></a>: the deploy and the runs, with their tests next to them.</li>
+<li><a href="https://github.com/fibtecltd/pyvar/blob/master/engine/montecarlo.py"><code>engine/montecarlo.py</code></a> in <a href="https://github.com/fibtecltd/pyvar">pyvar</a>: the file the pyvar run was asked about. It may have changed since.</li>
+<li>Earlier in this series: <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/articles/the-sandbox-is-the-feature.md">The Sandbox Is the Feature</a> and <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/articles/sonnet-5-5-by-default-opus-5-5-on-call.md">Sonnet 5.5 by Default, Opus 5.5 on Call</a>.</li>
+</ul>
+<p><strong>Images</strong></p>
+<p>The two illustrations are AI-generated. The tables and diagrams are drawn from the run data above.</p>
+  </article>
+</div>
+<script>
+(function () {
+  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/";
+  var story = document.getElementById("story");
+  var status = document.getElementById("status");
+  function say(t) { status.innerHTML = t; }
+  function selectStory() {
+    var r = document.createRange(); r.selectNodeContents(story);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  // The clipboard copy: the header slot is dropped, and every figure becomes an image link (or, in text mode, a marker line).
+  function build(mode) {
+    var clone = story.cloneNode(true);
+    clone.querySelectorAll("[data-nocopy]").forEach(function (n) { n.remove(); });
+    clone.querySelectorAll("figure[data-img]").forEach(function (fig) {
+      var cap = fig.querySelector("figcaption");
+      if (mode === "images") {
+        var out = document.createElement("figure");
+        var img = document.createElement("img"); img.src = RAW + fig.dataset.img; img.alt = fig.dataset.alt;
+        out.appendChild(img); if (cap) out.appendChild(cap.cloneNode(true));
+        fig.replaceWith(out);
+      } else {
+        var p = document.createElement("p");
+        p.innerHTML = "<em>[Image: " + fig.dataset.img + "]</em>" + (cap ? " " + cap.innerHTML : "");
+        fig.replaceWith(p);
+      }
+    });
+    return clone;
+  }
+  async function copy(mode) {
+    var clone = build(mode), htmlText = clone.innerHTML, plain = clone.textContent;
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([htmlText], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" })
+        })]);
+        return true;
+      }
+    } catch (e) { /* fall through */ }
+    selectStory();
+    try { if (document.execCommand("copy")) return true; } catch (e) { /* ignore */ }
+    return false;
+  }
+  document.getElementById("copy-img").addEventListener("click", async function () {
+    var ok = await copy("images");
+    say(ok ? "<strong>Copied, with the figures as image links.</strong> Paste into a new Medium story. If an image does not come through, upload its file from the list below at the same spot."
+           : "<strong>Copy was blocked here.</strong> Use the standalone file, or select the article and copy it.");
+  });
+  document.getElementById("copy-txt").addEventListener("click", async function () {
+    var ok = await copy("text");
+    say(ok ? "<strong>Copied, with a marker line where each figure goes.</strong> Paste into Medium, then upload the image named in each marker."
+           : "<strong>Copy was blocked here.</strong> Use the standalone file, or select the article and copy it.");
+  });
+})();
+</script></body></html>
