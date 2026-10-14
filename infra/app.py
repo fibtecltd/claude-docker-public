@@ -5,7 +5,7 @@ import os
 
 import aws_cdk as cdk
 
-from stacks.claude_ecs_stack import ClaudeEcsStack, Settings, profile_names
+from stacks.claude_ecs_stack import ClaudeEcsStack, Settings, parse_tags, profile_names
 
 app = cdk.App()
 
@@ -29,6 +29,7 @@ settings = Settings(
     ephemeral_storage_gib=int(context("ephemeral_storage_gib", defaults.ephemeral_storage_gib)),
     cpu_architecture=str(context("cpu_architecture", defaults.cpu_architecture)),
     github_token=flag(context("github_token", defaults.github_token)),
+    tags=parse_tags(context("tags", dict(defaults.tags))),
     profiles=profile_names(),
 )
 
