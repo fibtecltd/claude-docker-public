@@ -100,13 +100,13 @@ details.files ul { margin: 6px 0 0; padding-left: 1.2em; font-family: var(--mono
   <article id="story">
 <h1>Stop Mirroring Your Private Repo. Export It. (Plus the First Numbers From Running It on Fargate)</h1>
 <p class="deck"><em>How claude-docker-public is produced now, and what its first runs on ECS looked like.</em></p>
-<figure class="fig photo" data-img="header-fiery-genius-ready-for-export.jpg" data-alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/b1138b2b24c457df8189c9eb50ecae0c10a341ca/articles/images/header-fiery-genius-ready-for-export.jpg" alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk." loading="lazy"><figcaption>The Fiery Genius — Ready for Export. AI-generated illustration.</figcaption></figure>
+<figure class="fig photo" data-img="header-fiery-genius-ready-for-export.jpg" data-alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/header-fiery-genius-ready-for-export.jpg" alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk." loading="lazy"><figcaption>The Fiery Genius — Ready for Export. AI-generated illustration.</figcaption></figure>
 <hr>
 <p><strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong> is the open-source half of the container setup we run Claude Code in. Until recently it was a mirror of a private repository. It is now an export, and the difference is bigger than the word.</p>
 <p>This post has two parts: why we replaced the mirror and how the export works, then what happened the first time we ran the exported design headless on AWS Fargate, with the numbers.</p>
 <h2>A mirror's default is "everything crosses"</h2>
 <p>A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.</p>
-<figure class="fig photo" data-img="fiery-genius-facing-the-mirror.jpg" data-alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/b1138b2b24c457df8189c9eb50ecae0c10a341ca/articles/images/fiery-genius-facing-the-mirror.jpg" alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it." loading="lazy"><figcaption>The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.</figcaption></figure>
+<figure class="fig photo" data-img="fiery-genius-facing-the-mirror.jpg" data-alt="A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/fiery-genius-facing-the-mirror.jpg" alt="A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it." loading="lazy"><figcaption>The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.</figcaption></figure>
 <p>The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one <code>--delete</code> away from vanishing.</p>
 <p>So we turned it around. <strong>The private repo stays the source. The public repo is a product built from it.</strong></p>
 <h2>What an export does instead</h2>
@@ -331,7 +331,7 @@ scripts/deploy/ecs-in-docker.sh runs</code></pre>
 </div>
 <script>
 (function () {
-  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/b1138b2b24c457df8189c9eb50ecae0c10a341ca/articles/images/";
+  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/";
   var story = document.getElementById("story");
   var status = document.getElementById("status");
   function say(t) { status.innerHTML = t; }
