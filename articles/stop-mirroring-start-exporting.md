@@ -36,13 +36,11 @@ We deployed it into an AWS account that also runs production pipelines, so the d
 
 We ran it twice: five runs, then eleven with cost capture. The second set, on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5) unless stated:
 
-| run | start-up | run | turns | cost |
-|---|---|---|---|---|
-| one-word answer, first | 32 s | 29 s | 1 | $0.0955 |
-| same, again | 31 s | 28 s | 1 | $0.0077 |
-| question about pyvar, repo cloned | 32 s | 42 s | 3 | $0.1615 |
-| capped at $0.05 | 31 s | 35 s | 3 | $0.0680 |
-| four shell commands | 31 s | 49 s | 5 | $0.0803 |
+- **One-word answer, first run:** start-up 32 s, run phase 29 s, 1 turn, $0.0955
+- **The same, again:** start-up 31 s, run phase 28 s, 1 turn, $0.0077
+- **Question about pyvar, repo cloned:** start-up 32 s, run phase 42 s, 3 turns, $0.1615
+- **Capped at $0.05:** start-up 31 s, run phase 35 s, 3 turns, $0.0680
+- **Four shell commands:** start-up 31 s, run phase 49 s, 5 turns, $0.0803
 
 (Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own `total_cost_usd`, so API spend only; Fargate time is billed separately.)
 
@@ -67,16 +65,14 @@ Two consequences:
 
 The same prompt on each model, no errors and no rate limits, every one answered `ok` with exit 0:
 
-| model | cost | a call on this model minutes earlier? |
-|---|---|---|
-| Haiku 5.5, effort max | $0.0018 | yes |
-| Haiku 5.5 | $0.0049 | no |
-| Sonnet 5.5 | $0.0077 | yes |
-| Sonnet 5 | $0.1270 | no |
-| Opus 5.5 | $0.1893 | no |
-| Opus 5 | $0.2450 | no |
+- **Haiku 5.5, effort max:** $0.0018, warm (the model had been called minutes earlier)
+- **Haiku 5.5:** $0.0049, cold (first call on this model)
+- **Sonnet 5.5:** $0.0077, warm
+- **Sonnet 5:** $0.1270, cold
+- **Opus 5.5:** $0.1893, cold
+- **Opus 5:** $0.2450, cold
 
-Do not read this as a price list. The cheap rows are the ones with a warm cache; the others paid to write it, so the column on the right matters as much as the one next to the model. What it does show: the choice of model moved the cost by more than an order of magnitude, even between two first calls ($0.0049 for Haiku 5.5, $0.2450 for Opus 5), and the run time by about two seconds.
+Do not read this as a price list. The cheap rows are the ones with a warm cache; the others paid to write it, so the warm or cold note matters as much as the price. What it does show: the choice of model moved the cost by more than an order of magnitude, even between two first calls ($0.0049 for Haiku 5.5, $0.2450 for Opus 5), and the run time by about two seconds.
 
 ## Did it do the job?
 
