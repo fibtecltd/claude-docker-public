@@ -12,11 +12,17 @@ This post has two parts: why we replaced the mirror and how the export works, th
 
 A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.
 
+![A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it.](images/fiery-genius-facing-the-mirror.jpg)
+*The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.*
+
 The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one `--delete` away from vanishing.
 
 So we turned it around. **The private repo stays the source. The public repo is a product built from it.**
 
 ## What an export does instead
+
+![A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled "Exported Intelligence" and "Ready for export", on a dock at dusk.](images/fiery-genius-ready-for-export.jpg)
+*The Fiery Genius — Ready for Export. AI-generated illustration.*
 
 1. **It starts from what is committed.** `git archive HEAD`, not the working directory. A source with uncommitted changes is refused.
 2. **It sanitises.** Some paths never cross: the export tooling itself, private deployment settings, profiles that name private projects. Lines matching deny patterns are dropped from the README, and fenced blocks marked as private are cut out. An unbalanced fence aborts the export.
@@ -45,7 +51,7 @@ We ran it twice: five runs, then eleven with cost capture. The second set, on th
 ![A table of the five runs: start-up, run phase, turns and cost for each.](images/f4-five-runs.png)
 *The five runs.*
 
-(Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own `total_cost_usd`, so API spend only; Fargate time is billed separately.)
+(Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own `total_cost_usd`, a client-side estimate of API spend only; Fargate time is billed separately.)
 
 ![The 66 seconds of the capped run: provisioning 12 s, image pull 15 s, container start about 4 s, then 27 s outside the model session and 7.7 s of model session.](images/f3-one-run-timeline.png)
 *Where the 66 seconds of the capped run went. Container start is what is left of the 31-second start-up; the model session time is Claude Code's own.*
@@ -60,7 +66,9 @@ Each row is one sample. Read these as orders of magnitude, not benchmarks.
 
 Eleven runs cost **$0.99** against caps that added up to $3.55.
 
-The capped run printed its token counts, and the bill reproduces from them. It produced 671 output tokens, read 26,641 tokens from the prompt cache and wrote 22,395 to it. At Sonnet 5.5 list prices ($2 and $10 per million tokens, cache writes at 1.25x, cache reads at 0.1x) that is $0.0067 for the answer, $0.0053 for cache reads and $0.0560 for cache writes. They add up to the reported $0.0680. **Eighty-two percent of the cost was writing the starting context. Ten percent was the answer.**
+The capped run printed its token counts, and the cost Claude Code reported reproduces from them. It produced 671 output tokens, read 26,641 tokens from the prompt cache and wrote 22,395 to it. At $2 and $10 per million tokens for Sonnet 5.5, with cache writes at 1.25x and cache reads at 0.1x, that is $0.0067 for the answer, $0.0053 for cache reads and $0.0560 for cache writes. They add up to the reported $0.0680. **Eighty-two percent of the cost was writing the starting context. Ten percent was the answer.**
+
+One caveat on that arithmetic. Anthropic's pricing page lists Sonnet 5.5 cache reads at 0.05x, not 0.1x, and Claude Code's figure is an estimate from its own price table. At the page's rates, with five-minute cache writes, the same tokens come to $0.0654, and cache writes are 86 percent of it. The conclusion does not change.
 
 ![The $0.0680 of the capped run: 82 percent cache writes, 8 percent cache reads, 10 percent output.](images/f5-cost-of-one-run.png)
 *What the $0.0680 was made of.*
@@ -107,3 +115,33 @@ scripts/deploy/ecs-in-docker.sh runs
 ```
 
 The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes five runs by default and prints the report: timings, cost, the answer scored against the facts above and the guardrail checks. Add `--groups G1,G2,G3,G4` for the eleven runs of this article. The repository and the runbook, with the timing table, are in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**.
+
+## Sources
+
+The measurements are ours: sixteen runs on one AWS account, one sample each, with the scripts that made them and the timing table in the repository. Everything else comes from the pages below, which we checked on 14 October 2026.
+
+**Claude Code and Anthropic**
+
+- [Run Claude Code programmatically](https://code.claude.com/docs/en/headless): headless `claude -p` and `--output-format json`, the `total_cost_usd` field.
+- [Track cost and usage](https://code.claude.com/docs/en/agent-sdk/cost-tracking): `total_cost_usd` is a client-side estimate, not billing data; a run that crosses its budget counts the response that crossed it; cache entries last five minutes by default.
+- [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching): cache writes at 1.25 times the input price, reads at 0.1 times, with lower read rates on some models.
+- [Pricing](https://platform.claude.com/docs/en/about-claude/pricing): the per-model prices behind the cost figures; Sonnet 5.5 at $2 and $10 per million tokens, cache reads at $0.10.
+
+**AWS and tools**
+
+- [Amazon ECS task networking for Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-networking.html): a task's network interface, security groups, and the public IP a task needs to pull its image without a NAT gateway.
+- [AWS CDK bootstrapping](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html): what `cdk bootstrap` provisions, and why the deploy script never runs it.
+- [git archive](https://git-scm.com/docs/git-archive): an archive of a named tree, so only what is committed.
+- [rsync(1)](https://download.samba.org/pub/rsync/rsync.html): `--checksum` and `--delete`.
+
+**This project**
+
+- [claude-docker-public](https://github.com/fibtecltd/claude-docker-public): the repository.
+- [The runbook](https://github.com/fibtecltd/claude-docker-public/blob/main/docs/runbook.md): the timing tables, cost per run, model matrix and findings.
+- [`ecs-in-docker.sh`](https://github.com/fibtecltd/claude-docker-public/blob/main/scripts/deploy/ecs-in-docker.sh) and [`first-runs.sh`](https://github.com/fibtecltd/claude-docker-public/blob/main/scripts/run/first-runs.sh): the deploy and the runs, with their tests next to them.
+- [`engine/montecarlo.py`](https://github.com/fibtecltd/pyvar/blob/master/engine/montecarlo.py) in [pyvar](https://github.com/fibtecltd/pyvar): the file the pyvar run was asked about. It may have changed since.
+- Earlier in this series: [The Sandbox Is the Feature](https://github.com/fibtecltd/claude-docker-public/blob/main/articles/the-sandbox-is-the-feature.md) and [Sonnet 5.5 by Default, Opus 5.5 on Call](https://github.com/fibtecltd/claude-docker-public/blob/main/articles/sonnet-5-5-by-default-opus-5-5-on-call.md).
+
+**Images**
+
+The two illustrations are AI-generated. The tables and diagrams are drawn from the run data above.
