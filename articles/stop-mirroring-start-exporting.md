@@ -34,41 +34,65 @@ We deployed it into an AWS account that also runs production pipelines, so the d
 
 ## The first numbers
 
-Five runs on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5):
+We ran it twice: five runs, then eleven with cost capture. The second set, on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5) unless stated:
 
-| run | what it did | provisioning | image pull | start-up | run |
-|---|---|---|---|---|---|
-| 1 | one-word answer | 11 s | 16 s | 30 s | 30 s |
-| 2 | same, again | 17 s | 14 s | 36 s | 30 s |
-| 3 | question about pyvar, repo cloned | 12 s | 16 s | 32 s | 41 s |
-| 4 | same repo, USD 0.05 cap | 14 s | 15 s | 33 s | 37 s |
-| 5 | four shell commands | 12 s | 15 s | 32 s | 53 s |
+| run | start-up | run | turns | cost |
+|---|---|---|---|---|
+| one-word answer, first | 32 s | 29 s | 1 | $0.0955 |
+| same, again | 31 s | 28 s | 1 | $0.0077 |
+| question about pyvar, repo cloned | 32 s | 42 s | 3 | $0.1615 |
+| capped at $0.05 | 31 s | 35 s | 3 | $0.0680 |
+| four shell commands | 31 s | 49 s | 5 | $0.0803 |
 
-(Start-up is task created to running; it includes provisioning and image pull.)
+(Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own `total_cost_usd`, so API spend only; Fargate time is billed separately.)
 
-- **About 32 seconds to a running container**, almost half of it image pull. A one-word task is about a minute from command to exit.
+- **About 32 seconds to a running container** (30 to 36 over all sixteen runs), almost half of it image pull. A one-word task is about a minute from command to exit.
 - **There is no warm start.** Fargate pulls the image for every task. The second run was not faster than the first.
-- **The 30 seconds for a one-word answer** is Claude Code starting with its plugins plus one model call at the default effort. We have not split it further.
+- **The run phase is not the model.** A one-word answer took 28 to 30 seconds on every model we tried, Opus and Haiku included. One run reported its own session time: 7.7 seconds inside a 35-second run phase. So most of the run phase is outside the model session: Claude Code and its plugins starting, and exiting.
 
 Each row is one sample. Read these as orders of magnitude, not benchmarks.
+
+## What a run costs
+
+Eleven runs cost **$0.99** against caps that added up to $3.55.
+
+The capped run printed its token counts, and the bill reproduces from them. It produced 671 output tokens, read 26,641 tokens from the prompt cache and wrote 22,395 to it. At Sonnet 5.5 list prices ($2 and $10 per million tokens, cache writes at 1.25x, cache reads at 0.1x) that is $0.0067 for the answer, $0.0053 for cache reads and $0.0560 for cache writes. They add up to the reported $0.0680. **Eighty-two percent of the cost was writing the starting context. Ten percent was the answer.**
+
+Two consequences:
+
+- **The first call pays, the next ones do not.** A one-word answer cost $0.0955 the first time and $0.0077 both times after, a few minutes later.
+- **Set a cap above the starting context.** A cold one-word run already cost more than the $0.05 cap we used for the cap test, so that cap would have stopped any task. The run ended at $0.068, 36 percent over: a cap ends the run after the turn that crosses it, not to the cent.
+
+## Six models, one word
+
+The same prompt on each model, no errors and no rate limits, every one answered `ok` with exit 0:
+
+| model | cost | a call on this model minutes earlier? |
+|---|---|---|
+| Haiku 5.5, effort max | $0.0018 | yes |
+| Haiku 5.5 | $0.0049 | no |
+| Sonnet 5.5 | $0.0077 | yes |
+| Sonnet 5 | $0.1270 | no |
+| Opus 5.5 | $0.1893 | no |
+| Opus 5 | $0.2450 | no |
+
+Do not read this as a price list. The cheap rows are the ones with a warm cache; the others paid to write it, so the column on the right matters as much as the one next to the model. What it does show: the choice of model moved the cost by more than an order of magnitude, even between two first calls ($0.0049 for Haiku 5.5, $0.2450 for Opus 5), and the run time by about two seconds.
 
 ## Did it do the job?
 
 We scored the runs two ways.
 
-**The answer.** Run 3 asked how pyvar's Monte Carlo engine gets its random numbers. We wrote down six facts from the real `engine/montecarlo.py` first: the draw happens in Python outside the Numba kernel, it uses `np.random.randn`, it names `_draw_random_shocks`, it names the kernel `_simulate_paths`, the numbers reach the kernel as an argument, the seed is applied with `np.random.seed`. The answer contained all six, **6 out of 6**. We also checked its line references against the file by hand: all correct but one, off by a single line.
+**The answer.** The pyvar run asked how the Monte Carlo engine gets its random numbers. We wrote down six facts from the real `engine/montecarlo.py` first: the draw happens in Python outside the Numba kernel, it uses `np.random.randn`, it names `_draw_random_shocks`, it names the kernel `_simulate_paths`, the numbers reach the kernel as an argument, the seed is applied with `np.random.seed`. The answer contained all six, **6 out of 6**, in both of our runs. In the second run every line reference we checked by hand was right. (In the first run one was off by a single line.)
 
 That is one question and a pattern match, so it says the agent found the right file in a fresh clone and described it correctly, not that it is good in general.
 
-**The guardrails.** **5 of 5 runs behaved as designed.**
+**The guardrails.** **All eleven runs of the second set behaved as designed.**
 
-- The USD 0.05 cap stopped the task: `Error: Exceeded USD budget (0.05)`, exit code 1.
+- The $0.05 cap stopped the task: `Reached maximum budget ($0.05)`, exit code 1.
 - Inside a task, the AWS identity is the task role, and `aws s3 ls` is denied because the role has no permissions.
 - HTTPS to the internet returned 200. Plain HTTP on port 80 timed out after eight seconds.
 
-One caveat: for the HTTPS check the agent told us it had not captured curl's exit code reliably, so we rely on the 200.
-
-**What we did not measure:** what each run actually cost (our report prints the caps, USD 2.05 for the five, not the spend), a model comparison, concurrent tasks, Spot.
+**What we did not measure:** three tasks at once, Spot, and the answer quality of the models on anything harder than one word.
 
 ## Try it
 
