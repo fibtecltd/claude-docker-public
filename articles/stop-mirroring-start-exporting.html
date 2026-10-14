@@ -59,10 +59,6 @@ details.files ul { margin: 6px 0 0; padding-left: 1.2em; font-family: var(--mono
 #story .fig { overflow-x: auto; }
 #story .photo { overflow: visible; }
 #story .photo img { display: block; width: 100%; height: auto; border-radius: 6px; }
-.slot-box { aspect-ratio: 2 / 1; width: 100%; box-sizing: border-box; border: 2px dashed var(--line); border-radius: 8px; background: var(--box);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--ui); text-align: center; padding: 12px; }
-.slot-title { font-size: 20px; font-weight: 600; color: var(--ink); }
-.slot-note { font-size: 14px; color: var(--muted); }
 
 .fig svg { display: block; width: 100%; height: auto; min-width: 600px; }
 .fig .bx { fill: var(--box); stroke: var(--line); stroke-width: 1.5; }
@@ -98,23 +94,22 @@ details.files ul { margin: 6px 0 0; padding-left: 1.2em; font-family: var(--mono
   </div>
   <ul class="notes">
     <li>Medium has no tables, so every table and diagram is a PNG, and the two illustrations are JPEGs. The first button pastes all of them as links to the files in the repository; Medium usually fetches them. The second leaves a marker line where each one goes.</li>
-    <li>The header image slot at the top is not copied: add your image in Medium.</li>
+    <li>The header illustration is the first image under the title. In Medium, make sure it stays the first image so it becomes the story's preview picture.</li>
   </ul>
-  <details class="files"><summary>The 10 image files, in order of appearance</summary><ul><li>fiery-genius-facing-the-mirror.jpg</li><li>fiery-genius-ready-for-export.jpg</li><li>f1-export-pipeline.png</li><li>f2-a-run-on-fargate.png</li><li>f4-five-runs.png</li><li>f3-one-run-timeline.png</li><li>f5-cost-of-one-run.png</li><li>f6-cost-per-model.png</li><li>f7-rubric.png</li><li>f8-guardrails.png</li></ul></details>
+  <details class="files"><summary>The 10 image files, in order of appearance</summary><ul><li>header-fiery-genius-ready-for-export.jpg</li><li>fiery-genius-facing-the-mirror.jpg</li><li>f1-export-pipeline.png</li><li>f2-a-run-on-fargate.png</li><li>f4-five-runs.png</li><li>f3-one-run-timeline.png</li><li>f5-cost-of-one-run.png</li><li>f6-cost-per-model.png</li><li>f7-rubric.png</li><li>f8-guardrails.png</li></ul></details>
   <article id="story">
 <h1>Stop Mirroring Your Private Repo. Export It. (Plus the First Numbers From Running It on Fargate)</h1>
-<figure class="header-slot" data-nocopy><div class="slot-box"><span class="slot-title">Header image</span><span class="slot-note">1500 × 750 px, 2:1. Add it in Medium; this box is not copied.</span></div></figure>
 <p class="deck"><em>How claude-docker-public is produced now, and what its first runs on ECS looked like.</em></p>
+<figure class="fig photo" data-img="header-fiery-genius-ready-for-export.jpg" data-alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/header-fiery-genius-ready-for-export.jpg" alt="A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk." loading="lazy"><figcaption>The Fiery Genius — Ready for Export. AI-generated illustration.</figcaption></figure>
 <hr>
 <p><strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong> is the open-source half of the container setup we run Claude Code in. Until recently it was a mirror of a private repository. It is now an export, and the difference is bigger than the word.</p>
 <p>This post has two parts: why we replaced the mirror and how the export works, then what happened the first time we ran the exported design headless on AWS Fargate, with the numbers.</p>
 <h2>A mirror's default is "everything crosses"</h2>
 <p>A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.</p>
-<figure class="fig photo" data-img="fiery-genius-facing-the-mirror.jpg" data-alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/fiery-genius-facing-the-mirror.jpg" alt="A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it." loading="lazy"><figcaption>The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.</figcaption></figure>
+<figure class="fig photo" data-img="fiery-genius-facing-the-mirror.jpg" data-alt="A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/fiery-genius-facing-the-mirror.jpg" alt="A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it." loading="lazy"><figcaption>The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.</figcaption></figure>
 <p>The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one <code>--delete</code> away from vanishing.</p>
 <p>So we turned it around. <strong>The private repo stays the source. The public repo is a product built from it.</strong></p>
 <h2>What an export does instead</h2>
-<figure class="fig photo" data-img="fiery-genius-ready-for-export.jpg" data-alt="A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/fiery-genius-ready-for-export.jpg" alt="A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled &quot;Exported Intelligence&quot; and &quot;Ready for export&quot;, on a dock at dusk." loading="lazy"><figcaption>The Fiery Genius — Ready for Export. AI-generated illustration.</figcaption></figure>
 <ol>
 <li><strong>It starts from what is committed.</strong> <code>git archive HEAD</code>, not the working directory. A source with uncommitted changes is refused.</li>
 <li><strong>It sanitises.</strong> Some paths never cross: the export tooling itself, private deployment settings, profiles that name private projects. Lines matching deny patterns are dropped from the README, and fenced blocks marked as private are cut out. An unbalanced fence aborts the export.</li>
@@ -336,7 +331,7 @@ scripts/deploy/ecs-in-docker.sh runs</code></pre>
 </div>
 <script>
 (function () {
-  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/75de569370c008cb467601289202c033ef706cbb/articles/images/";
+  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/8e0c985eebcfe8a04c6072c37f8396717613dc03/articles/images/";
   var story = document.getElementById("story");
   var status = document.getElementById("status");
   function say(t) { status.innerHTML = t; }
@@ -344,7 +339,7 @@ scripts/deploy/ecs-in-docker.sh runs</code></pre>
     var r = document.createRange(); r.selectNodeContents(story);
     var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
   }
-  // The clipboard copy: the header slot is dropped, and every figure becomes an image link (or, in text mode, a marker line).
+  // The clipboard copy: every figure becomes an image link (or, in text mode, a marker line).
   function build(mode) {
     var clone = story.cloneNode(true);
     clone.querySelectorAll("[data-nocopy]").forEach(function (n) { n.remove(); });

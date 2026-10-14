@@ -2,6 +2,9 @@
 
 *How claude-docker-public is produced now, and what its first runs on ECS looked like.*
 
+![A figure made of light-blue fire crouches in a thinking pose inside a glass-sided shipping container labelled "Exported Intelligence" and "Ready for export", on a dock at dusk.](images/header-fiery-genius-ready-for-export.jpg)
+*The Fiery Genius — Ready for Export. AI-generated illustration.*
+
 ---
 
 **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)** is the open-source half of the container setup we run Claude Code in. Until recently it was a mirror of a private repository. It is now an export, and the difference is bigger than the word.
@@ -12,7 +15,7 @@ This post has two parts: why we replaced the mirror and how the export works, th
 
 A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.
 
-![A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it.](images/fiery-genius-facing-the-mirror.jpg)
+![A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it.](images/fiery-genius-facing-the-mirror.jpg)
 *The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.*
 
 The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one `--delete` away from vanishing.
@@ -20,9 +23,6 @@ The public repo also needs files the private one should never have: a licence, a
 So we turned it around. **The private repo stays the source. The public repo is a product built from it.**
 
 ## What an export does instead
-
-![A figure made of fire crouches in a thinking pose inside a glass-sided shipping container labelled "Exported Intelligence" and "Ready for export", on a dock at dusk.](images/fiery-genius-ready-for-export.jpg)
-*The Fiery Genius — Ready for Export. AI-generated illustration.*
 
 1. **It starts from what is committed.** `git archive HEAD`, not the working directory. A source with uncommitted changes is refused.
 2. **It sanitises.** Some paths never cross: the export tooling itself, private deployment settings, profiles that name private projects. Lines matching deny patterns are dropped from the README, and fenced blocks marked as private are cut out. An unbalanced fence aborts the export.
