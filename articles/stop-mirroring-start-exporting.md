@@ -24,51 +24,78 @@ So we turned it around. **The private repo stays the source. The public repo is 
 4. **It writes one commit on a new branch** from the public `main`, with `rsync --checksum --delete` that protects the files that only exist publicly. Review happens as an ordinary pull request on the public side. Exporting the same source twice changes nothing.
 5. **CI runs it as a dry run** on pull requests: `--check` writes nothing and lists what would change.
 
+![The export pipeline: private repo, committed state, sanitise, scan, one commit on a new branch, public repo. A hit in the scan aborts the export.](images/f1-export-pipeline.png)
+*The export, step by step. Anything the scan finds stops it before anything reaches the public clone.*
+
 One time the scan fired in CI it was on our own test data: a made-up twelve-digit account id inside an ARN in a test fixture. A false positive, and the right kind to have. We changed the fixture, not the rule.
 
 ## Then we ran it on Fargate
 
 The exported design runs Claude Code headless on ECS Fargate: one task per run, nothing standing between runs (the idle cost is image storage), plugins baked into the image at pinned commits, a profile that picks which ones load. Every run must carry a turn cap and a budget cap. The task role is empty and the security group allows outbound HTTPS only.
 
+![A run on Fargate: the image in ECR, one task per run with an empty role and HTTPS-only egress to the Anthropic API, GitHub and other sites, logs in CloudWatch. Everything but HTTPS is blocked.](images/f2-a-run-on-fargate.png)
+*One task per run. It can reach HTTPS sites, the Anthropic API and GitHub for the clone among them, and nothing else.*
+
 We deployed it into an AWS account that also runs production pipelines, so the deploy script reads before it writes. Nine checks come back GO or NO-GO, the CDK diff must be create-only, `cdk bootstrap` is never run, and afterwards the account is compared with a baseline taken before. Result: 40 new items in the diff, none changed or removed, the bootstrap stack untouched, no pipeline execution started.
 
 ## The first numbers
 
-Five runs on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5):
+We ran it twice: five runs, then eleven with cost capture. The second set, on the core and pyvar profiles, Fargate on arm64, the image's default model (Sonnet 5.5) unless stated.
 
-| run | what it did | provisioning | image pull | start-up | run |
-|---|---|---|---|---|---|
-| 1 | one-word answer | 11 s | 16 s | 30 s | 30 s |
-| 2 | same, again | 17 s | 14 s | 36 s | 30 s |
-| 3 | question about pyvar, repo cloned | 12 s | 16 s | 32 s | 41 s |
-| 4 | same repo, USD 0.05 cap | 14 s | 15 s | 33 s | 37 s |
-| 5 | four shell commands | 12 s | 15 s | 32 s | 53 s |
+![A table of the five runs: start-up, run phase, turns and cost for each.](images/f4-five-runs.png)
+*The five runs.*
 
-(Start-up is task created to running; it includes provisioning and image pull.)
+(Start-up is task created to running, including provisioning and image pull. Cost is Claude Code's own `total_cost_usd`, so API spend only; Fargate time is billed separately.)
 
-- **About 32 seconds to a running container**, almost half of it image pull. A one-word task is about a minute from command to exit.
+![The 66 seconds of the capped run: provisioning 12 s, image pull 15 s, container start about 4 s, then 27 s outside the model session and 7.7 s of model session.](images/f3-one-run-timeline.png)
+*Where the 66 seconds of the capped run went. Container start is what is left of the 31-second start-up; the model session time is Claude Code's own.*
+
+- **About 32 seconds to a running container** (30 to 36 over all sixteen runs), almost half of it image pull. A one-word task is about a minute from command to exit.
 - **There is no warm start.** Fargate pulls the image for every task. The second run was not faster than the first.
-- **The 30 seconds for a one-word answer** is Claude Code starting with its plugins plus one model call at the default effort. We have not split it further.
+- **The run phase is not the model.** A one-word answer took 28 to 30 seconds on every model we tried, Opus and Haiku included. One run reported its own session time: 7.7 seconds inside a 35-second run phase. So most of the run phase is outside the model session: Claude Code and its plugins starting, and exiting.
 
 Each row is one sample. Read these as orders of magnitude, not benchmarks.
+
+## What a run costs
+
+Eleven runs cost **$0.99** against caps that added up to $3.55.
+
+The capped run printed its token counts, and the bill reproduces from them. It produced 671 output tokens, read 26,641 tokens from the prompt cache and wrote 22,395 to it. At Sonnet 5.5 list prices ($2 and $10 per million tokens, cache writes at 1.25x, cache reads at 0.1x) that is $0.0067 for the answer, $0.0053 for cache reads and $0.0560 for cache writes. They add up to the reported $0.0680. **Eighty-two percent of the cost was writing the starting context. Ten percent was the answer.**
+
+![The $0.0680 of the capped run: 82 percent cache writes, 8 percent cache reads, 10 percent output.](images/f5-cost-of-one-run.png)
+*What the $0.0680 was made of.*
+
+Two consequences:
+
+- **The first call pays, the next ones do not.** A one-word answer cost $0.0955 the first time and $0.0077 both times after, a few minutes later.
+- **Set a cap above the starting context.** A cold one-word run already cost more than the $0.05 cap we used for the cap test, so that cap would have stopped any task. The run ended at $0.068, 36 percent over: a cap ends the run after the turn that crosses it, not to the cent.
+
+## Six models, one word
+
+The same prompt on each model, no errors and no rate limits, every one answered `ok` with exit 0:
+
+![The cost of the same one-word prompt on six models, from $0.0018 for Haiku 5.5 at effort max to $0.2450 for Opus 5, with warm and cold cache marked.](images/f6-cost-per-model.png)
+*The same prompt on six models. Dark bars paid to write the cache; light bars read one written minutes earlier.*
+
+Do not read this as a price list. The cheap rows are the ones with a warm cache; the others paid to write it, so the bar colour matters as much as the length. What it does show: the choice of model moved the cost by more than an order of magnitude, even between two first calls ($0.0049 for Haiku 5.5, $0.2450 for Opus 5), and the run time by about two seconds.
 
 ## Did it do the job?
 
 We scored the runs two ways.
 
-**The answer.** Run 3 asked how pyvar's Monte Carlo engine gets its random numbers. We wrote down six facts from the real `engine/montecarlo.py` first: the draw happens in Python outside the Numba kernel, it uses `np.random.randn`, it names `_draw_random_shocks`, it names the kernel `_simulate_paths`, the numbers reach the kernel as an argument, the seed is applied with `np.random.seed`. The answer contained all six, **6 out of 6**. We also checked its line references against the file by hand: all correct but one, off by a single line.
+**The answer.** The pyvar run asked how the Monte Carlo engine gets its random numbers. We wrote down six facts from the real `engine/montecarlo.py` first: the draw happens in Python outside the Numba kernel, it uses `np.random.randn`, it names `_draw_random_shocks`, it names the kernel `_simulate_paths`, the numbers reach the kernel as an argument, the seed is applied with `np.random.seed`. The answer contained all six, **6 out of 6**, in both of our runs. In the second run every line reference we checked by hand was right. (In the first run one was off by a single line.)
+
+![The six facts from the real file, each found in the answer: 6 out of 6.](images/f7-rubric.png)
+*Six facts from the real `engine/montecarlo.py`, each looked for in the answer.*
 
 That is one question and a pattern match, so it says the agent found the right file in a fresh clone and described it correctly, not that it is good in general.
 
-**The guardrails.** **5 of 5 runs behaved as designed.**
+**The guardrails.** **All eleven runs of the second set behaved as designed.**
 
-- The USD 0.05 cap stopped the task: `Error: Exceeded USD budget (0.05)`, exit code 1.
-- Inside a task, the AWS identity is the task role, and `aws s3 ls` is denied because the role has no permissions.
-- HTTPS to the internet returned 200. Plain HTTP on port 80 timed out after eight seconds.
+![The guardrails as designed and as seen: spend cap, task role, HTTPS, HTTP, and the deploy into a shared account.](images/f8-guardrails.png)
+*What we designed, and what we saw.*
 
-One caveat: for the HTTPS check the agent told us it had not captured curl's exit code reliably, so we rely on the 200.
-
-**What we did not measure:** what each run actually cost (our report prints the caps, USD 2.05 for the five, not the spend), a model comparison, concurrent tasks, Spot.
+**What we did not measure:** three tasks at once, Spot, and the answer quality of the models on anything harder than one word.
 
 ## Try it
 
@@ -79,4 +106,4 @@ scripts/deploy/ecs-in-docker.sh deploy
 scripts/deploy/ecs-in-docker.sh runs
 ```
 
-The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes the five runs above and prints the report. The repository and the runbook, with the timing table, are in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**.
+The first builds and smoke-tests the image, runs the checks, deploys the stack and pushes the image. The second makes five runs by default and prints the report: timings, cost, the answer scored against the facts above and the guardrail checks. Add `--groups G1,G2,G3,G4` for the eleven runs of this article. The repository and the runbook, with the timing table, are in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**.

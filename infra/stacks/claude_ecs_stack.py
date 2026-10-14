@@ -6,6 +6,7 @@ ECR storage (plus the NAT gateway when egress="nat").
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -29,6 +30,17 @@ PROFILES_DIR = Path(__file__).resolve().parents[2] / "profiles"
 SECRET_PLACEHOLDER = "replace-me-with-put-secret-value"
 
 
+DEFAULT_TAGS: tuple[tuple[str, str], ...] = (("Project", "claude-ecs"),)
+MAX_TAGS = 50  # CloudFormation's limit per stack
+
+
+def parse_tags(value) -> tuple[tuple[str, str], ...]:
+    """Tags from CDK context: `-c tags='{"Project":"x"}'` arrives as a JSON string,
+    CDK_CONTEXT_JSON as an object."""
+    mapping = json.loads(value) if isinstance(value, str) else dict(value)
+    return tuple((str(key), str(val)) for key, val in mapping.items())
+
+
 @dataclass(frozen=True)
 class Settings:
     """Deployment settings, read from CDK context (see app.py and infra/README.md)."""
@@ -40,6 +52,7 @@ class Settings:
     ephemeral_storage_gib: int = 30
     cpu_architecture: str = "X86_64"
     github_token: bool = False
+    tags: tuple[tuple[str, str], ...] = DEFAULT_TAGS
     profiles: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
@@ -52,6 +65,11 @@ class Settings:
             )
         if not 20 <= self.ephemeral_storage_gib <= 200:
             raise ValueError("ephemeral_storage_gib must be between 20 and 200")
+        if len(self.tags) > MAX_TAGS:
+            raise ValueError(f"at most {MAX_TAGS} tags")
+        for key, val in self.tags:
+            if not key or key.lower().startswith("aws:") or not val:
+                raise ValueError(f"tag {key!r}={val!r}: key and value must be non-empty, key not aws:*")
 
 
 def profile_names(profiles_dir: Path = PROFILES_DIR) -> tuple[str, ...]:
@@ -65,7 +83,8 @@ def profile_names(profiles_dir: Path = PROFILES_DIR) -> tuple[str, ...]:
 class ClaudeEcsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, settings: Settings, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        Tags.of(self).add("Project", "claude-ecs")
+        for key, val in settings.tags:
+            Tags.of(self).add(key, val)
 
         repository = ecr.Repository(
             self,

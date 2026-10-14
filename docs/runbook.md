@@ -2,11 +2,20 @@
 
 `scripts/run/run-task.sh` starts one task, waits for it, then prints its logs, its exit code and where the time went. This runbook covers the setup it needs and what to expect.
 
-**Status:** none of this has run against AWS yet. The first deploy and the first task are the first test; the timings in "Reading the result" are to be filled in from that run.
+**Status:** deployed and run on 2026-10-14 (eu-west-1, Fargate on arm64, public IPs, no NAT): five runs, then eleven with cost capture (groups G1-G4). All 16 behaved as designed. Concurrency and Spot (group G5, `first-runs.sh --all`) have not been run.
 
 ## 1. One-time setup
 
-Follow `infra/README.md` (bootstrap, `cdk deploy`, secrets, image push) and check:
+**Fast path, with only Docker on the machine.** Have the AWS credentials of the account exported, or in a `.env` file in the repository (or `--env-file FILE`), then:
+
+```bash
+scripts/deploy/ecs-in-docker.sh deploy --use-env-key   # build, smoke test, checks, stack, key, image, verify
+scripts/deploy/ecs-in-docker.sh runs                   # the quick set of 5 runs; add --all for all 15; prints a report
+```
+
+`deploy` stops on any NO-GO, asks for the account id and for a y/n on the IAM changes, and can be run again (a deployed stack and a stored key are skipped). `--use-env-key` stores `$ANTHROPIC_API_KEY`; leave it out to be asked. `runs` makes 5 runs by default (cold and warm start, a read-only question about pyvar, the spend cap, the task role and egress rules; caps add up to USD 2.05) or 15 with `--all` (USD 4.55; it refuses to start over USD 5). It ends with a markdown report of timings, guardrail evidence and a Quality section: the pyvar answer scored against six facts from the real code, and whether each run behaved as designed. Both run the AWS and CDK work in a container, so the machine needs no AWS CLI. Details: `scripts/deploy/ecs-in-docker.sh --help`.
+
+**By hand.** Follow `infra/README.md` (bootstrap, `cdk deploy`, secrets, image push) and check:
 
 ```bash
 aws cloudformation describe-stacks --stack-name claude-ecs --query 'Stacks[0].Outputs'
@@ -16,7 +25,7 @@ aws ecr describe-images --repository-name claude-ecs --query 'imageDetails[].ima
 
 You need one task definition per profile in `profiles/` (`claude-ecs-core`, `claude-ecs-pyvar`, and any profile you add), an image tagged `latest` (or your `image_tag`) built for the architecture you deployed, and the real API key in `claude-ecs/anthropic-api-key`. For private repositories deploy with `-c github_token=true` and put a token in `claude-ecs/github-token`.
 
-Requirements on your machine: AWS CLI v2 with credentials for the account and region, and `jq`.
+Requirements on your machine for `run-task.sh`: AWS CLI (v1 or v2) with credentials for the account and region, and `jq`. The `ecs-in-docker.sh` route needs only Docker.
 
 ## 2. First run
 
@@ -29,7 +38,7 @@ scripts/run/run-task.sh --profile core --prompt "Reply with exactly: ok" \
 
 ## 3. Model matrix (rate-limit evidence)
 
-Run the same trivial prompt against each model and compare with what you see from other paths:
+The quickest way is `scripts/deploy/ecs-in-docker.sh runs --groups G2` (six runs, caps add up to USD 1.50): it prints the models side by side with start-up, run time, turns and what each cost. By hand, run the same trivial prompt against each model and compare with what you see from other paths:
 
 ```bash
 for m in claude-sonnet-5-5 claude-opus-5-5 claude-sonnet-5 claude-opus-5 claude-haiku-5-5; do
@@ -45,7 +54,7 @@ A 429 shows up in the task logs and a non-zero exit code.
 
 ```bash
 # A task inside a repository (its CLAUDE.md and .claude/ are loaded)
-scripts/run/run-task.sh --profile pyvar --repo fibtecltd/pyvar --ref main \
+scripts/run/run-task.sh --profile pyvar --repo fibtecltd/pyvar --ref master \
     --prompt "Describe how engine/montecarlo.py draws its random numbers" \
     --max-turns 15 --max-budget-usd 2
 
@@ -72,7 +81,41 @@ scripts/run/run-task.sh --profile core --prompt "..." --max-turns 10 --max-budge
 
 | Date | Profile | Provisioning | Image pull | Start-up | Run | Note |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| 2026-10-14 | core | 11 s | 16 s | 30 s | 30 s | first task after the image push, answer `ok` |
+| 2026-10-14 | core | 17 s | 14 s | 36 s | 30 s | second task, same prompt |
+| 2026-10-14 | pyvar | 12 s | 16 s | 32 s | 41 s | clones `fibtecltd/pyvar` at `master`, answers a question about `engine/montecarlo.py` |
+| 2026-10-14 | pyvar | 14 s | 15 s | 33 s | 37 s | stopped by `--max-budget-usd 0.05` (exit 1) |
+| 2026-10-14 | core | 12 s | 15 s | 32 s | 53 s | four shell commands, one of them waiting out an 8 s curl timeout |
+
+The second set of eleven runs (`first-runs.sh --groups G1,G2,G3,G4`, cost taken from Claude Code's `total_cost_usd`, the Anthropic API only):
+
+| Run | Model | Start-up | Run | Turns | Cost (USD) |
+|---|---|---|---|---|---|
+| one-word answer, first | default (Sonnet 5.5) | 32 s | 29 s | 1 | 0.0955 |
+| same, again | default | 31 s | 28 s | 1 | 0.0077 |
+| one-word, per model | Sonnet 5.5 | 34 s | 28 s | 1 | 0.0077 |
+| | Opus 5.5 | 33 s | 28 s | 1 | 0.1893 |
+| | Sonnet 5 | 30 s | 28 s | 1 | 0.1270 |
+| | Opus 5 | 34 s | 29 s | 1 | 0.2450 |
+| | Haiku 5.5 | 32 s | 30 s | 1 | 0.0049 |
+| | Haiku 5.5, effort `max` | 35 s | 30 s | 1 | 0.0018 |
+| question about pyvar (clone) | default | 32 s | 42 s | 3 | 0.1615 |
+| capped at USD 0.05 | default | 31 s | 35 s | 3 | 0.0680 |
+| role and egress commands | default | 31 s | 49 s | 5 | 0.0803 |
+
+Total: USD 0.9887 for the eleven, against caps that add up to USD 3.55. Fargate time is billed separately by AWS.
+
+What the sixteen runs show (one sample each, so read them as orders of magnitude):
+
+- **Start-up is about 32 s** (30-36 s over all 16 runs): roughly 13 s of provisioning, 15 s of image pull and a few seconds to start the container. A trivial one-word task takes about a minute from `run-task.sh` to exit.
+- **There is no warm start.** Fargate pulls the image for every task; the second run was not faster than the first.
+- **The run phase of a one-word answer is 28-30 s on every model**, Haiku 5.5 at effort `max` and Opus 5 included, so it is not model latency. The capped run reported its own session time (`duration_ms`) as 7.7 s inside a 35 s run phase: most of the run phase is outside the model session (Claude Code starting with the profile's plugins, the repository clone, exit).
+- **What a run costs is mostly its starting context.** For the capped run, Claude Code reported 671 output tokens, 26,641 tokens read from the prompt cache and 22,395 written to it. At list prices for Sonnet 5.5 ($2 / $10 per million, cache write 1.25x, cache read 0.1x) that is USD 0.0067 of output, 0.0053 of cache reads and 0.0560 of cache writes, which adds up to the reported 0.0680 to four decimals: 82% of the cost was writing the context, 10% was the answer.
+- **The first call pays for the cache, later calls do not.** One-word answer on Sonnet 5.5: USD 0.0955 for the first run, 0.0077 for each later one a few minutes after. In the per-model rows, Sonnet 5.5 and Haiku 5.5 at `max` were second calls on their model; the others were first calls, so the six costs mix cache states and show the order of magnitude per model, not a like-for-like price.
+- **Set a cap above the starting context.** A cold one-word run on Sonnet 5.5 cost more than the USD 0.05 cap used for the cap test, so with a cold cache that cap trips on any task on this profile. The run stopped at USD 0.0680, 36% over the cap: a cap ends the run after the turn that crosses it, not to the cent.
+- **The spend cap works:** `subtype: error_max_budget_usd`, `terminal_reason: budget_exhausted`, "Reached maximum budget ($0.05)", exit 1.
+- **No rate limits:** all six models answered with exit 0.
+- **Network and role:** from inside a task, `sts get-caller-identity` shows the task role, `s3 ls` is denied (the role has no permissions), HTTPS to the internet returns 200 and plain HTTP on port 80 times out after 8 s.
 
 ## 6. Cost and safety
 

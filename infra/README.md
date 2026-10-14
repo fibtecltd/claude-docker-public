@@ -40,10 +40,15 @@ Passed as CDK context: `-c key=value`, or `CDK_CONTEXT_JSON` when running `pytho
 | `ephemeral_storage_gib` | `30` | 20 to 200 |
 | `cpu_architecture` | `X86_64` | `X86_64` or `ARM64`; must match the image you push |
 | `github_token` | `false` | create the GitHub token secret and inject it |
+| `tags` | `{"Project": "claude-ecs"}` | tags on every resource, as JSON: `-c 'tags={"Project":"x","Owner":"y"}'`. Match your account's tagging convention |
 
 AWS account and region come from your credentials (`CDK_DEFAULT_ACCOUNT` / `CDK_DEFAULT_REGION`); nothing is hard-coded.
 
 ## Deploy (by you; not done by CI)
+
+`scripts/deploy/ecs-deploy.sh` wraps the steps below with checks that run before anything changes: `preflight` (read-only checks of the account: identity, name clashes, CDK bootstrap version, Fargate and VPC headroom, budgets, pipelines, tag convention), `stack` (preflight, a diff that must only create resources, and a typed confirmation, then `cdk deploy`), `image` (build, smoke test, push), `secret` and `verify`. It never runs `cdk bootstrap`. Settings come from the environment or `--config FILE`; see the header of the script.
+
+The manual steps:
 
 ```bash
 cd infra

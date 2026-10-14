@@ -6,7 +6,7 @@ import aws_cdk as cdk
 import pytest
 from aws_cdk.assertions import Match, Template
 
-from stacks.claude_ecs_stack import ClaudeEcsStack, Settings, profile_names
+from stacks.claude_ecs_stack import ClaudeEcsStack, Settings, parse_tags, profile_names
 
 PROFILES = profile_names()
 
@@ -182,10 +182,33 @@ def test_image_tag_is_configurable():
     assert image["Fn::Join"][1][-1] == ":abc1234"
 
 
+def test_default_tag_is_the_project_name(public):
+    public.has_resource_properties(
+        "AWS::ECR::Repository", {"Tags": [{"Key": "Project", "Value": "claude-ecs"}]}
+    )
+
+
+def test_tags_are_configurable_and_reach_the_resources():
+    tags = (("Project", "common"), ("Owner", "example-org"), ("ManagedBy", "cdk"))
+    template = synth(tags=tags)
+    expected = [{"Key": k, "Value": v} for k, v in sorted(tags)]  # CloudFormation sorts by key
+    template.has_resource_properties("AWS::ECR::Repository", {"Tags": Match.array_with(expected)})
+    template.has_resource_properties("AWS::ECS::Cluster", {"Tags": Match.array_with(expected)})
+
+
+def test_tags_parse_from_a_json_string_or_an_object():
+    assert parse_tags('{"Project": "common", "Owner": "o"}') == (("Project", "common"), ("Owner", "o"))
+    assert parse_tags({"Project": "common"}) == (("Project", "common"),)
+
+
 @pytest.mark.parametrize(
     "overrides",
     [
         {"egress": "tailscale"},
+        {"tags": (("", "x"),)},
+        {"tags": (("aws:reserved", "x"),)},
+        {"tags": (("Project", ""),)},
+        {"tags": tuple((f"k{i}", "v") for i in range(51))},
         {"cpu_architecture": "ppc64"},
         {"ephemeral_storage_gib": 10},
         {"ephemeral_storage_gib": 500},

@@ -13,6 +13,7 @@ on:
       - infra/**
       - profiles/**
       - scripts/run/**
+      - scripts/deploy/**
       - scripts/runtime/**
       - .github/workflows/infra.yml
   workflow_dispatch:
@@ -67,7 +68,18 @@ jobs:
           persist-credentials: false
 
       - name: shellcheck
-        run: shellcheck scripts/run/*.sh scripts/runtime/ecs-claude scripts/build/*.sh scripts/ci/*.sh
+        run: shellcheck scripts/run/*.sh scripts/runtime/ecs-claude scripts/build/*.sh scripts/ci/*.sh scripts/deploy/*.sh
+
+      - name: ecs-deploy.sh against a stubbed aws (no AWS calls)
+        run: scripts/deploy/test-ecs-deploy.sh
+
+      - name: ecs-in-docker.sh against a stubbed docker (no Docker, no AWS)
+        run: scripts/deploy/test-ecs-in-docker.sh
+
+      - name: first-runs.sh and run-task.sh against stubs (no AWS calls)
+        run: |
+          scripts/run/test-first-runs.sh
+          scripts/run/test-run-task.sh
 
       - name: run-task.sh builds a valid request (no AWS calls)
         env:

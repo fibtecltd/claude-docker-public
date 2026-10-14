@@ -200,10 +200,12 @@ while :; do
 done
 
 # Seconds between two task timestamps; "n/a" when either is missing or unparsable.
-# All timestamps share one UTC offset, so their differences are right.
+# All timestamps share one UTC offset, so their differences are right. AWS CLI v2 prints
+# ISO 8601 strings, v1 prints epoch numbers; both are accepted.
 epoch() {
-    jq -r --arg f "$1" '.tasks[0][$f] // empty | sub("\\.[0-9]+"; "")
-        | strptime("%Y-%m-%dT%H:%M:%S%z") | mktime' <<<"$desc" 2>/dev/null || true
+    jq -r --arg f "$1" '.tasks[0][$f] // empty
+        | if type == "number" then floor
+          else sub("\\.[0-9]+"; "") | strptime("%Y-%m-%dT%H:%M:%S%z") | mktime end' <<<"$desc" 2>/dev/null || true
 }
 span() {
     local a b
@@ -211,8 +213,12 @@ span() {
     if [ -n "$a" ] && [ -n "$b" ]; then echo "$((b - a))s"; else echo "n/a"; fi
 }
 
-echo "--- logs ($LOG_GROUP, stream $profile/claude/$task_id)"
-aws logs tail "$LOG_GROUP" --log-stream-names "$profile/claude/$task_id" --since 3h --format short 2>&1 \
+log_stream="$profile/claude/$task_id"
+echo "--- logs ($LOG_GROUP, stream $log_stream)"
+# AWS CLI v1 (the one in the image) has no `logs tail`; fall back to get-log-events.
+aws logs tail "$LOG_GROUP" --log-stream-names "$log_stream" --since 3h --format short 2>/dev/null \
+    || aws logs get-log-events --log-group-name "$LOG_GROUP" --log-stream-name "$log_stream" \
+        --start-from-head --output json 2>/dev/null | jq -er '.events[].message' \
     || echo "(could not read the log stream; try the CloudWatch console)"
 
 exit_code="$(jq -r '.tasks[0].containers[0].exitCode // empty' <<<"$desc")"
