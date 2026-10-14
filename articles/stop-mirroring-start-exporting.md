@@ -15,7 +15,7 @@ This post has two parts: why we replaced the mirror and how the export works, th
 
 A mirror copies the private repo and relies on a list of exclusions. Safety is whatever someone remembered to put on that list, and when the list is wrong nothing tells you. We also had a script in each direction, so the two repos were coupled: a change on one side could not be made without thinking about the other.
 
-![A figure made of fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it.](images/fiery-genius-facing-the-mirror.jpg)
+![A figure made of light-blue fire, seen from behind, rests a hand on its chin in front of an ornate mirror. Its reflection looks back at it.](images/fiery-genius-facing-the-mirror.jpg)
 *The Fiery Genius — Facing Himself in front of a Mirror. AI-generated illustration.*
 
 The public repo also needs files the private one should never have: a licence, a security policy, issue templates. In a mirror those are always one `--delete` away from vanishing.
