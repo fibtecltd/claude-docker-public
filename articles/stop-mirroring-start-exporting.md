@@ -70,17 +70,6 @@ One caveat: for the HTTPS check the agent told us it had not captured curl's exi
 
 **What we did not measure:** what each run actually cost (our report prints the caps, USD 2.05 for the five, not the spend), a model comparison, concurrent tasks, Spot.
 
-## The unglamorous part
-
-The deploy tooling was the least reliable thing in the project. It had stubs and tests, and it still needed six small fixes after its first contact with a real account:
-
-- a safety check that refused every new CDK stack, because every new CDK stack mentions "bootstrap" (the first fix was not enough either: CLI notices mention it too);
-- a script that ignored the `.env` file it was told about;
-- a budget check that blocked the deploy on an unrelated daily alert, which became report-only;
-- `docker login` trying to save its token in the macOS keychain, which refused. Our first fix, a throwaway Docker config, still ended up at the keychain, because a config with no login in it makes the CLI pick the platform's default credential helper. The second fix writes the login straight into the throwaway config, so there is nothing to save.
-
-Tests catch what you thought of; the account catches the rest. Each fix got a regression test.
-
 ## Try it
 
 You need Docker and AWS credentials, not the AWS CLI:
