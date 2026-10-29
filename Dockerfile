@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     jq \
     bubblewrap \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # GitHub CLI — from the official apt repository.
@@ -120,7 +121,9 @@ USER claude
 # create new namespace", measured 2026-10-29), so every command the agent runs is blocked. Where a runtime
 # lets bubblewrap create namespaces (a VM, or a local container that allows it), switch it on per run:
 #   docker compose run --rm -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 claude-ecs-base -p "..."
-# bubblewrap is installed for that case; with the scrub on and bubblewrap missing, Claude Code exits at start.
+# bubblewrap and socat are installed for that case: Claude Code's Linux sandbox needs both. With the scrub
+# on and bubblewrap missing, Claude Code exits at start; with socat missing it refuses every command
+# ("Sandbox is required but failed to initialize: ... socat not installed", seen 2026-10-29).
 # scripts/run/first-runs.sh (G4b) reports what a command can see of the API key. docs/runbook.md section 6.
 ENV DISABLE_AUTOUPDATER=1 \
     CLAUDE_CODE_SKIP_ONBOARDING=1 \
