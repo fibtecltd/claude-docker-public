@@ -45,11 +45,17 @@ This isn't scoped to a single codebase. The image is built once; which project i
 git clone https://github.com/fibtecltd/claude-docker-public
 cd claude-docker-public
 cp .env.example .env   # add your ANTHROPIC_API_KEY
-docker compose build --no-cache claude
-docker compose run --rm claude
+docker compose build claude-ecs-base
+docker compose run --rm claude-ecs-base -p "say hi"
 ```
 
-Read `SETUP.md` first. The permission-mode section isn't optional reading — it's the one part of this setup where "I skimmed it" is how people get surprised.
+To work on a project, bind-mount its folder (the path is yours to change) and start in it:
+
+```bash
+docker compose run --rm -v "$HOME/projects/my-repo:/workspace/my-repo" -w /workspace/my-repo claude-ecs-base
+```
+
+Read the README and `docs/runbook.md` first, section 6 (cost and safety) in particular. The permission-mode notes there aren't optional reading — it's the one part of this setup where "I skimmed it" is how people get surprised.
 
 ## License
 
