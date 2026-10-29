@@ -34,7 +34,6 @@ One image, and one Fargate task per run. A run is an `ecs run-task` call; betwee
 - **No volumes and no host mounts.** The only code in the box is a shallow clone of the one repository named in the request.
 - **A task role with no permissions.** Anything inside can sign AWS requests as the task role, and the role is allowed nothing.
 - **No inbound rule, and outbound HTTPS only.** One security group, one rule. HTTPS is open to any host by default and can be restricted to an allowlist of hosts when a job needs it (leak 2 below).
-- **Commands can be kept from reading the API key.** The image carries Claude Code's subprocess scrub, off by default and switched on per run. The guardrail run switches it on and checks it from inside the task (leak 1 below).
 - **A pinned supply chain.** Plugins are fetched at the commits in a lock file at build time, owned by root and read-only for the agent. There is no marketplace call at run time, and CI fails the build if a credential is left in the image or its history.
 - **Caps on every run.** `--max-turns` and `--max-budget-usd` are required: limits belong to the task, not to the image.
 
@@ -60,15 +59,15 @@ What disposability costs: about 32 seconds to a running container (30 to 36 acro
 
 ## Three leaks a box does not close on its own
 
-**1. The key is in the box.** The API key arrives from Secrets Manager as an environment variable, and with permission prompts off, every command the agent runs inherits it. Anthropic's dev-container page states the general case plainly: with permissions bypassed, a container does not prevent "exfiltrating anything accessible inside the container, including the Claude Code credentials stored in `~/.claude`."
+**1. The key is in the box.** The API key arrives from Secrets Manager as an environment variable, and with permission prompts off, every command the agent runs inherits it. We checked from inside a task: a command's environment lists `ANTHROPIC_API_KEY`, and `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`, the address the task role's credentials come from. Anthropic's dev-container page states the general case plainly: with permissions bypassed, a container does not prevent "exfiltrating anything accessible inside the container, including the Claude Code credentials stored in `~/.claude`."
 
-Claude Code has an opt-in for exactly this, `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. Our image ships with it off and with `bubblewrap` installed, and a run switches it on with `--env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. Switched on, it removes credentials from the environment of the commands Claude Code starts, and on Linux it runs Bash in its own PID namespace (through `bubblewrap`), so a command cannot read the parent's environment through `/proc` either. The Claude Code process keeps the key, because it needs it to call the API. The scrub recognises a credential by the name of the variable or the shape of its value, and Anthropic's advice is to use it as one layer. It deliberately leaves `GITHUB_TOKEN` and `GH_TOKEN` in place so that `gh` keeps working, which means those two need scoping. It hides every credential-looking variable from the agent's commands, not only the API key, so a task that needs one of them in a command leaves the switch off.
+Claude Code has an opt-in for exactly this, `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. It removes credentials from the environment of the commands Claude Code starts, and on Linux it runs them in their own PID namespace through `bubblewrap`, so a command cannot read the parent's environment through `/proc` either. The Claude Code process keeps the key, because it needs it to call the API. The scrub recognises a credential by the name of the variable or the shape of its value, and it leaves `GITHUB_TOKEN` and `GH_TOKEN` in place so that `gh` keeps working.
 
-The harness checks the switch from inside the task instead of trusting it: the guardrail run switches the scrub on and has the agent run two commands. One prints `key-hidden` or `key-VISIBLE` depending on whether the key is in the command's own environment. The other counts the `/proc/*/environ` files the command can read that contain the key's name. Neither prints the key, and both build their output at run time, so an agent that quotes the command in its answer cannot pass the check by accident.
+It does not work on Fargate. `bubblewrap` has to create a user namespace, and a Fargate task refuses: `bwrap: No permissions to create new namespace`, for a user namespace alone, for a PID namespace with a fresh `/proc`, and for one that reuses the existing `/proc`, although the kernel allows namespaces. There is no fallback either: with the scrub on, Claude Code runs every command sandboxed, and in our run it blocked all of them. So the image ships with the scrub off, and the key stays visible to the agent's commands. Where a runtime lets `bubblewrap` create namespaces, such as a VM or a local container that allows it, the scrub is a per-run switch and worth turning on.
 
-<!-- PUBLISH GATE (not shown on the page): do not publish until scripts/deploy/verify-scrub.sh (claude-docker-ecs PR 26) has passed on AWS: with the scrub switched on, the key is hidden from a command and from /proc, sts still shows the task role, and Bash works under bubblewrap on Fargate. If any of them fails, rewrite leak 1 and figures b1, b3 and b5. Delete this comment when verified. -->
+On Fargate the way to close this leak is to keep the key out of the box: a gateway that holds it, or, on Bedrock, a role in place of a key (the closed design below says what that costs). The harness reports what a command can see of the key in every guardrail run, with two commands: one prints `key-hidden` or `key-VISIBLE` for the command's own environment, the other counts the `/proc/*/environ` files the command can read that contain the key's name. Neither prints the key, and both build their output at run time, so an agent that quotes the command in its answer cannot match by accident.
 
-The scrub leaves one thing alone: the agent itself still holds the key. A command cannot read it, but a hijacked session can still spend it through the agent's own model calls, so the cap, not the scrub, limits that.
+Even where the scrub works, the agent itself still holds the key. A command cannot read it, but a hijacked session can still spend it through the agent's own model calls, so the cap limits that.
 
 **2. Anywhere on 443.** Simon Willison's "lethal trifecta" is an agent that has private data, reads untrusted content and can communicate outward. Our box has all three. The private data is the clone and the keys. The untrusted content is every file the agent reads and every page it fetches. The way out is port 443, to anywhere. Anthropic recommends bypass mode "in isolated environments like containers, VMs, or dev containers without internet access"; ours has internet access, because the agent has to reach the model.
 
@@ -105,7 +104,7 @@ Our local `docker compose` route is a plain container on your machine, which sha
 2. **No host mounts you would not hand a stranger.** No `~/.ssh`, no cloud credential files, no Docker socket.
 3. **An empty cloud role.** Add permissions per task, never per image.
 4. **Scoped, short-lived tokens**, for one repository.
-5. **Put the key out of the shell's reach** (the scrub above), or out of the box: a gateway that holds it, or a role in place of a key.
+5. **Put the key out of the shell's reach** where the runtime allows it (Claude Code's scrub, which needs `bubblewrap`), or out of the box: a gateway that holds it, or a role in place of a key.
 6. **Decide egress on purpose.** Closed if the job fits, bounded if it does not, and written down if you can do neither.
 7. **A cap on every run**, above the context floor, treated as a ceiling with slack.
 8. **Probe the box from the inside, in CI, on every build.** A guardrail you do not test is a rumour.
@@ -119,18 +118,18 @@ scripts/deploy/ecs-in-docker.sh deploy
 scripts/deploy/ecs-in-docker.sh runs
 ```
 
-You need Docker and AWS credentials, not the AWS CLI. The first command builds and smoke-tests the image, checks the account, deploys the stack and pushes the image; the second runs the probes above, the two scrub probes included, and prints a report. `scripts/deploy/verify-scrub.sh` runs the guardrail group with the scrub switched on and prints a verdict. The runbook, with every timing and cost, is in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**. `SECURITY.md` lists the known limitations, and this post adds to the list on purpose. If you find another leak, open an issue, or write to the address in `SECURITY.md` if it is a vulnerability.
+You need Docker and AWS credentials, not the AWS CLI. The first command builds and smoke-tests the image, checks the account, deploys the stack and pushes the image; the second runs the probes above, including what a command can see of the API key, and prints a report. The runbook, with every timing and cost, is in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**. `SECURITY.md` lists the known limitations, and this post adds to the list on purpose. If you find another leak, open an issue, or write to the address in `SECURITY.md` if it is a vulnerability.
 
 ## Sources
 
-The measurements are ours: sixteen runs on one AWS account in one region, one sample each, with the scripts that made them and the timing table in the repository. Everything else comes from the pages below, which we checked on 29 October 2026.
+The measurements are ours: sixteen runs on 2026-10-14, then two guardrail runs and a diagnostic task on 2026-10-29, on one AWS account in one region, one sample each, with the scripts that made them and the timing table in the repository. Everything else comes from the pages below, which we checked on 29 October 2026.
 
 **Claude Code and Anthropic**
 
 - [Choose a permission mode](https://code.claude.com/docs/en/permission-modes): what `bypassPermissions` does, that it "offers no protection against prompt injection or unintended actions", the advice to use it only in isolated environments without internet access, and that it refuses to start as root.
 - [Choose a sandbox environment](https://code.claude.com/docs/en/sandbox-environments): the comparison of the sandboxed Bash tool, the sandbox runtime, dev containers, custom containers, VMs and cloud sessions; the custom-container checklist quoted above.
 - [Development containers](https://code.claude.com/docs/en/devcontainer): the warning about exfiltration with permissions bypassed, and the example default-deny firewall.
-- [Configure the sandboxed Bash tool](https://code.claude.com/docs/en/sandboxing): how the Bash sandbox isolates commands, and what it does not cover.
+- [Configure the sandboxed Bash tool](https://code.claude.com/docs/en/sandboxing): how the Bash sandbox isolates commands and what it does not cover, that `bubblewrap` cannot mount a fresh `/proc` in an unprivileged container, and that on Linux with the scrub set every command runs sandboxed, with no unsandboxed retry.
 - [Environment variables](https://code.claude.com/docs/en/env-vars): `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` (what it removes and what it leaves: GitHub tokens, proxy variables, the PID namespace) and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
 - [Enterprise network configuration](https://code.claude.com/docs/en/network-config): the hosts Claude Code needs to reach, and `HTTPS_PROXY`.
 - [Claude Code on Amazon Bedrock](https://code.claude.com/docs/en/amazon-bedrock): the default AWS credential chain with ECS task credentials, the IAM actions it needs, and that WebSearch is not available there.
