@@ -12,7 +12,8 @@
 #   G1  cold and warm start of the core profile, trivial prompt
 #   G2  the model matrix on one trivial prompt, plus Haiku 5.5 at --effort max
 #   G3  a read-only question about a public repository (pyvar, --ref master)
-#   G4  guardrails: a spend cap that is hit, the task role and the egress rules
+#   G4  guardrails: a spend cap that is hit, the task role and the egress rules, and the
+#       what a command can see of the API key (reported, not judged)
 #   G5  three tasks at once, then one on Fargate Spot
 # and writes a markdown report (timings, outcomes, evidence) that is also printed. It ends with a
 # Quality section: the pyvar answer scored against 6 facts taken from engine/montecarlo.py, and
@@ -50,7 +51,23 @@ die() { echo "first-runs: $*" >&2; exit 2; }
 TRIVIAL='Read-only: reply with exactly: ok'
 PYVAR_PROMPT='Read-only: do not modify or create any file and do not push anything. In at most 8 lines, explain how engine/montecarlo.py gets its random numbers: where they are drawn, whether the draw happens inside or outside the Numba-compiled kernel, how the numbers reach the kernel, and how a seed is applied. Name the functions involved.'
 CAP_PROMPT='Read-only: read engine/montecarlo.py and engine/metrics.py completely, then write a detailed review of about 400 words for each file. Do not modify anything.'
-ROLE_PROMPT="Read-only: run exactly these four shell commands, one at a time, and for each report its exit code and the first 3 lines of its output, nothing else. 1) aws sts get-caller-identity 2) aws s3 ls 3) curl -sS -m 8 -o /dev/null -w '%{http_code}' https://api.github.com 4) curl -sS -m 8 -o /dev/null -w '%{http_code}' http://example.com . Do not retry a command and do not try to fix an error."
+# Commands 5 and 6 report what a command the agent runs can see of the API key: whether it is in the
+# command's environment, and how many /proc/*/environ files hold it. They are reported, not judged (the
+# scrub that would hide the key needs bubblewrap, which a Fargate task cannot run; see the runbook). They
+# print a marker built at run time ("key-$s", "...: $n") so that the agent quoting the command text
+# in its answer cannot match the patterns below by accident. They never print the key.
+IFS= read -r -d '' ROLE_PROMPT <<'EOF' || true
+Read-only: run exactly these six shell commands, one at a time, and for each report its exit code and the first 3 lines of its output, nothing else. The commands are the text between backticks.
+1) `aws sts get-caller-identity`
+2) `aws s3 ls`
+3) `curl -sS -m 8 -o /dev/null -w '%{http_code}' https://api.github.com`
+4) `curl -sS -m 8 -o /dev/null -w '%{http_code}' http://example.com`
+5) `if [ -n "${ANTHROPIC_API_KEY:-}" ]; then s=VISIBLE; else s=hidden; fi; echo "key-$s"`
+6) `n=0; for f in /proc/[0-9]*/environ; do grep -qa ANTHROPIC_API_KEY "$f" 2>/dev/null && n=$((n+1)); done; echo "proc-environ-with-key: $n"`
+Do not retry a command and do not try to fix an error. Never print the value of any variable.
+EOF
+ROLE_PROMPT="${ROLE_PROMPT//$'\n'/ }"
+ROLE_PROMPT="${ROLE_PROMPT% }"
 
 # id|group|mode|profile|model|effort|spot|repo|ref|turns|budget|prompt
 spec_table() {
@@ -65,7 +82,7 @@ G2-haiku-5-5|G2|seq|core|claude-haiku-5-5||0|||1|0.25|$TRIVIAL
 G2-haiku-5-5-max|G2|seq|core|claude-haiku-5-5|max|0|||1|0.25|$TRIVIAL
 G3-pyvar-read|G3|seq|pyvar|||0|fibtecltd/pyvar|master|15|1.00|$PYVAR_PROMPT
 G4-budget-cap|G4|seq|pyvar|||0|fibtecltd/pyvar|master|10|0.05|$CAP_PROMPT
-G4-role-egress|G4|seq|core|||0|||8|0.50|$ROLE_PROMPT
+G4-role-egress|G4|seq|core|||0|||10|0.50|$ROLE_PROMPT
 G5-par-1|G5|par|core|||0|||1|0.25|$TRIVIAL
 G5-par-2|G5|par|core|||0|||1|0.25|$TRIVIAL
 G5-par-3|G5|par|core|||0|||1|0.25|$TRIVIAL
@@ -103,7 +120,7 @@ selected() { # selected ID GROUP
 PLAN="$(mktemp)"
 OUT="$(mktemp -d)"
 CLUSTER="" PIDS=""
-# shellcheck disable=SC2317  # called through the EXIT trap
+# shellcheck disable=SC2317,SC2329  # called through the EXIT trap
 stop_ours() {
     local arns a
     arns="$(aws ecs list-tasks --cluster "$CLUSTER" --started-by claude-ecs-run-task --desired-status RUNNING \
@@ -112,14 +129,14 @@ stop_ours() {
         aws ecs stop-task --cluster "$CLUSTER" --task "$a" --reason "first-runs.sh interrupted" >/dev/null 2>&1 || true
     done
 }
-# shellcheck disable=SC2317  # called through the INT/TERM trap
+# shellcheck disable=SC2317,SC2329  # called through the INT/TERM trap
 on_signal() {
     echo; echo "Interrupted: stopping the tasks this script started."
     # shellcheck disable=SC2086
     [ -z "$PIDS" ] || kill $PIDS 2>/dev/null || true
     exit 130   # the EXIT trap stops the tasks
 }
-# shellcheck disable=SC2317  # called through the EXIT trap
+# shellcheck disable=SC2317,SC2329  # called through the EXIT trap
 cleanup() {
     rm -rf "$PLAN" "$OUT"
     # Whatever happens, no task this script started is left running.
@@ -299,7 +316,7 @@ yn() { if has "$1" "$2"; then echo yes; else echo NO; fi; }
 
 # The Quality section: printed last, inside the report block (it counts in that shell).
 quality_section() {
-    local id ans full rc ok obs ident s3 https blocked
+    local id ans full rc ok obs ident s3 https blocked keyvis procn
     echo "## Quality"
     if [ -f "$OUT/G3-pyvar-read.rc" ]; then
         G3_ANSWER="$(result_text G3-pyvar-read 200)"
@@ -351,9 +368,14 @@ quality_section() {
         s3="$(yn "$full" 'AccessDenied|access denied|not authorized|denied|forbidden')"
         https="$(yn "$full" '(^|[^0-9])200([^0-9]|$)')"
         blocked="$(yn "$full" '(^|[^0-9])000([^0-9]|$)|time(d)?[ -]?out|timeout|exit( code)?:? ?(28|7)([^0-9]|$)|could not connect|refused|blocked')"
+        # What a command can see of the API key: reported, not part of "as designed".
+        keyvis="n/a"
+        if has "$full" 'key-VISIBLE'; then keyvis=yes; elif has "$full" 'key-hidden'; then keyvis=no; fi
+        procn="$(printf '%s' "$full" | sed -n 's/.*proc-environ-with-key: \([0-9][0-9]*\).*/\1/p' | head -n 1)"
+        [ -n "$procn" ] || procn="n/a"
         ok=0
         if [ "$ident$s3$https$blocked" = "yesyesyesyes" ]; then ok=1; fi
-        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked" "$ok"
+        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked (what a command sees of the API key is only reported)" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked; reported: key in a command's environment: $keyvis, /proc/*/environ files with the key: $procn" "$ok"
     fi
     echo
     echo "**Behaved as designed: $BEH_OK of $BEH_TOTAL**"
@@ -412,7 +434,7 @@ model_matrix() {
         case "$id" in
             G3-pyvar-read) echo "## G3 - read-only question about pyvar (--ref master)" ;;
             G4-budget-cap) echo "## G4a - spend cap of USD 0.05 on a task that needs more" ;;
-            G4-role-egress) echo "## G4b - task role and egress" ;;
+            G4-role-egress) echo "## G4b - task role, egress and what a command can see of the API key" ;;
         esac
         echo
         echo "Exit code $(exit_of "$id"); stopped: $(grep -E '^stopped:' "$OUT/$id.out" | head -n 1 | sed 's/^stopped: *//')"

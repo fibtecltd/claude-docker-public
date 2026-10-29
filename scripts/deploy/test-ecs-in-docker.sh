@@ -101,6 +101,12 @@ expect "a config outside the repository is refused" 1 "must be inside"
 reset; wrap
 expect "no command prints usage, exit 2" 2 "Commands"
 
+reset; wrap exec aws ecr describe-images --repository-name claude-ecs
+check "exec runs the command in the tools container, repository at /work" logged "-v $REPO:/work -w /work"
+check "...with the command and its options as given" logged "claude-ecs-deploy:local aws ecr describe-images --repository-name claude-ecs"
+reset; wrap exec
+expect "exec without a command is refused" 1 "exec needs a command"
+
 # ── keys from an env file ──
 printf '%s\n' '# comment' 'AWS_ACCESS_KEY_ID=AKIAFROMFILE' "AWS_SECRET_ACCESS_KEY='file secret'" \
     'export ANTHROPIC_API_KEY="sk-ant-from-file"' 'OTHER=not-read' > "$WORK/keys.env"

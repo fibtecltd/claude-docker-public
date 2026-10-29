@@ -18,6 +18,8 @@
 #   verify      compare the account with the preflight baseline
 #   identity    show who the AWS credentials belong to
 #   shell       a shell in the tools container
+#   exec CMD..  run CMD in the tools container, without a TTY (aws, jq and the repository at /work),
+#               e.g.  exec aws ecr describe-images --repository-name claude-ecs
 #
 # Options
 #   --config FILE   settings file inside this repository (default scripts/private/fibtec.env)
@@ -279,7 +281,7 @@ main() {
         esac
     done
     case "$cmd" in
-        deploy | runs | preflight | stack | secret | image | verify | identity | shell) ;;
+        deploy | runs | preflight | stack | secret | image | verify | identity | shell | exec) ;;
         *) usage >&2; return 2 ;;
     esac
     resolve_config
@@ -296,6 +298,8 @@ main() {
         verify) ensure_tools_image; deploy_script batch verify ;;
         identity) ensure_tools_image; tools_run batch aws sts get-caller-identity --output json ;;
         shell) ensure_tools_image; tools_run tty bash ;;
+        exec) [ ${#extra[@]} -gt 0 ] || die "exec needs a command, e.g.  exec aws sts get-caller-identity"
+              ensure_tools_image; tools_run batch "${extra[@]}" ;;
         image) build_images; smoke_test; push_image ;;
     esac
 }

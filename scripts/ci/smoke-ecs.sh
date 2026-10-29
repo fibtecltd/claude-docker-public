@@ -60,6 +60,13 @@ docker run --rm --entrypoint bash "$IMG" -c '
   done
 '
 
+echo "--- [$MODE] the subprocess scrub is off by default and can be switched on (bubblewrap is installed)"
+# shellcheck disable=SC2016
+docker run --rm --entrypoint bash "$IMG" -c '
+  test "${CLAUDE_CODE_SUBPROCESS_ENV_SCRUB:-0}" = 0 || { echo "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is on by default in the image"; exit 1; }
+  command -v bwrap >/dev/null || { echo "bubblewrap is missing: Claude Code will not start with the scrub switched on"; exit 1; }
+'
+
 echo "--- [$MODE] plugins match plugins.lock, validate, and are read-only for claude"
 expected=$(grep -Evc '^[[:space:]]*(#|$)' "$LOCK")
 # shellcheck disable=SC2016

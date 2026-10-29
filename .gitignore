@@ -6,4 +6,5 @@ __pycache__/
 .pytest_cache/
 .ecs-deploy-baseline.json
 first-runs-report.md
+scrub-check-*.md
 .ecs-deploy-diff.txt

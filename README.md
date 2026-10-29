@@ -19,6 +19,7 @@ Design choices that matter on ECS:
 - `ENTRYPOINT` is `ecs-claude`, a small wrapper that adds the selected profile's plugins, optionally clones a repository (`CLAUDE_REPO`, `CLAUDE_REF`), and then `exec`s `claude`, so container arguments are still Claude Code arguments. A headless run is `-p "…"`, which maps directly onto an ECS command override.
 - No agents, commands, skills or hooks are baked into the user-level config; they come from plugins and from the project being worked on. The only user-level file is `claude-config/settings.json` (model, effort levels, permission mode).
 - Plugins are plain directories fetched at the commits pinned in `plugins.lock` (no marketplace, no install step), owned by root and read-only for the `claude` user.
+- The API key is in the environment of every command the agent runs. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` would hide it, but it runs commands through `bubblewrap`, which cannot create a user namespace in a Fargate task, so the image leaves it off and it must not be switched on in a task (runbook, section 6). The image installs `bubblewrap` for runtimes where it works, for example `docker compose run -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 …`.
 - The optional GitHub token used while fetching plugins is a BuildKit secret mount, not a build argument, so it does not end up in image history.
 - Versions are pinned where they can be: Claude Code (`CLAUDE_CODE_VERSION`), `uv`, the Stripe CLI (`STRIPE_CLI_VERSION`). The SSM plugin is not.
 
@@ -116,19 +117,27 @@ GitHub Actions (`.github/workflows/build-ecs.yml`) builds both targets and runs 
 | `scripts/build/` | `fetch-plugins.sh` (used by the Dockerfile) and `bump-plugin.sh` |
 | `scripts/runtime/ecs-claude` | the entrypoint wrapper |
 | `scripts/run/run-task.sh` | starts one headless task on ECS, waits, prints logs, exit code and timings (see `docs/runbook.md`) |
+| `scripts/run/first-runs.sh` | the first runs against a deployed stack (timings, cost, guardrails) with a report |
+| `scripts/run/check-scrub-local.sh` | checks, with `docker compose`, whether Claude Code's credential scrub can run in your Docker (writes a report) |
+| `scripts/deploy/` | `ecs-in-docker.sh` (deploy and run with only Docker on the machine) and `ecs-deploy.sh` (the guarded stack deploy) |
 | `docs/runbook.md` | setup, recipes, data handling and troubleshooting for running tasks on ECS |
 | `infra/` | CDK app: ECR repository, cluster, network and one task definition per profile (see `infra/README.md`) |
 | `scripts/ci/smoke-ecs.sh` | smoke tests, used by CI and runnable locally |
 
 ## Status
 
-Done: both images build in CI and pass their smoke tests; profiles select plugins per deployment; the `infra/` CDK app is written, tested and linted (not yet deployed).
+Done:
+
+- Both images build in CI and pass their smoke tests; profiles select plugins per deployment.
+- The `infra/` CDK app is deployed and has run tasks. The reference deployment is ECS on Fargate (arm64, public subnets, no NAT). `docs/runbook.md` has the 16 runs of 2026-10-14 (timings, cost, what each guardrail showed) and the guardrail runs of 2026-10-29.
+
+Known limits, measured (details in `docs/runbook.md`, section 6):
+
+- A command the agent runs can read the API key from its environment. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` hides it where `bubblewrap` can create namespaces; neither a Fargate task nor Docker on macOS allowed that in our runs, so the image leaves the scrub off. `scripts/run/check-scrub-local.sh` checks whether your own Docker allows it.
+- Outbound HTTPS is open to any host by default; it can be restricted to an allowlist (runbook, section 6).
+
+Not yet run: concurrency and Spot (group G5 of `first-runs.sh`).
 
 The plugin lists in `profiles/` are a first cut and are expected to be reviewed.
-
-Planned, in order:
-
-1. **First deploy** of `infra/` (steps in `infra/README.md`).
-2. **First tasks** with `scripts/run/run-task.sh`, filling in the timings table in `docs/runbook.md`. The helper and runbook are written and tested offline (dry runs and a stubbed AWS CLI); they have not run against AWS.
 
 The Docker images cannot be built in the environment this repository is developed in, so changes to the Dockerfile are validated by CI rather than locally.

@@ -29,6 +29,7 @@
 #   - the GitHub token comes from a BuildKit secret mount, not ARG, so it never
 #     lands in image history (and therefore never in ECR)
 #   - minimal inline ~/.claude.json (no personal state); auto-updater disabled
+#   - CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is off, and cannot be used on Fargate (see below)
 # ============================================================
 
 # ── Stage 1: ecs-base ─────────────────────────────────────────────
@@ -44,6 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     jq \
+    bubblewrap \
     && rm -rf /var/lib/apt/lists/*
 
 # GitHub CLI — from the official apt repository.
@@ -109,8 +111,20 @@ RUN printf '%s\n' '{"hasCompletedOnboarding":true,"autoUpdates":false,"theme":"d
 
 USER claude
 
+# CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: off. With 1, Claude Code removes credentials (ANTHROPIC_API_KEY among
+# them) from the environment of the commands it runs, and on Linux runs them in their own PID namespace so
+# they cannot read the parent's environment through /proc. The Claude Code process itself keeps the key for
+# its API calls; GITHUB_TOKEN and GH_TOKEN are left in place by design.
+# DO NOT SWITCH IT ON IN A FARGATE TASK. It runs every command through bubblewrap with no unsandboxed
+# fallback, and bubblewrap cannot create a user namespace in a Fargate task ("bwrap: No permissions to
+# create new namespace", measured 2026-10-29), so every command the agent runs is blocked. Where a runtime
+# lets bubblewrap create namespaces (a VM, or a local container that allows it), switch it on per run:
+#   docker compose run --rm -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 claude-ecs-base -p "..."
+# bubblewrap is installed for that case; with the scrub on and bubblewrap missing, Claude Code exits at start.
+# scripts/run/first-runs.sh (G4b) reports what a command can see of the API key. docs/runbook.md section 6.
 ENV DISABLE_AUTOUPDATER=1 \
     CLAUDE_CODE_SKIP_ONBOARDING=1 \
+    CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=0 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /workspace
