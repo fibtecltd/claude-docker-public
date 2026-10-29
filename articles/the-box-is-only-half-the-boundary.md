@@ -1,6 +1,6 @@
 # The Box Is Only Half the Boundary
 
-*What sixteen disposable Claude Code runs taught us about sandboxing coding agents, and three things our own sandbox still doesn't stop.*
+*What sixteen disposable Claude Code runs taught us about sandboxing coding agents, and the three leaks we found in our own.*
 
 ![A figure made of glowing sand presses its hand against the glass wall of a shipping crate labelled "Sand Genius", "High value intellectual asset" and "Export only", on a dock at sunset. A panel on the crate reads "A brilliant mind shouldn't stay confined."](images/header-sand-genius-in-a-crate.jpg)
 *Sand Genius, crated for shipping. AI-generated illustration.*
@@ -11,7 +11,7 @@ The crate in the picture carries the objection every team hears the first time i
 
 It is a fair point. An agent that has to ask before every `rm`, every `curl` and every `pip install` is not much of an agent, so teams switch the permission prompts off. Then comes the question that matters: with the prompts gone, what is left between the agent and everything else?
 
-We switched ours off too. The image in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)** runs Claude Code with `bypassPermissions`, headless, on AWS Fargate. This post is about what makes that defensible, what we measured to check it, and the three things the box still doesn't stop. Anthropic's own documentation is blunt about the problem underneath: bypass mode "offers no protection against prompt injection or unintended actions." A sandbox can't fix that. It can only decide how far the damage reaches.
+We switched ours off too. The image in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)** runs Claude Code with `bypassPermissions`, headless, on AWS Fargate. This post is about what makes that defensible, what we measured to check it, and the three leaks we found in it. Anthropic's own documentation is blunt about the problem underneath: bypass mode "offers no protection against prompt injection or unintended actions." A sandbox can't fix that. It can only decide how far the damage reaches.
 
 ## Three questions every agent sandbox answers
 
@@ -53,20 +53,39 @@ The next two are the honest news. HTTPS to the open internet returns 200. Plain 
 
 The fifth is a lesson in what a cap is. We set a USD 0.05 budget and the run stopped, correctly, with `error_max_budget_usd`, at USD 0.068. A cap ends the run after the turn that crosses it, not to the cent, so treat it as a ceiling with slack. A cold one-word run on Sonnet 5.5 already costs more than the cap we used for the test (USD 0.0955 for the first call, USD 0.0077 for each later one, because the first call pays to write the prompt cache), so set caps above the starting context, or they will stop even a trivial task.
 
-All sixteen runs behaved as designed. That is a statement about the design. It is not a statement about safety.
+All sixteen runs behaved as designed. That is a statement about the design. It is not a statement about safety. Notice, too, what the five probes do not ask: whether a command the agent runs can read the API key. We added that question after the sixteen runs, and it is the first leak below.
 
 What disposability costs: about 32 seconds to a running container (30 to 36 across the sixteen runs, roughly 13 of provisioning and 15 of image pull, with no warm start), so a one-word task takes about a minute from command to exit. For an agent that works for twenty minutes, that is noise. For a quick check, it is the whole job. One sample each, one account, one region: read these as orders of magnitude.
 
-## What the box doesn't stop
+## Three leaks in our own box
 
-**1. The key is in the box.** The API key arrives from Secrets Manager as an environment variable, and with permission prompts off, nothing stops a command the agent runs from reading it. Claude Code has an opt-in setting, `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, that removes credentials from the environment of the commands it starts (and, on Linux, runs Bash in its own PID namespace so it cannot read the parent's environment through `/proc`). It deliberately leaves `GITHUB_TOKEN` in place so that `gh` keeps working. We do not set it in the image today. Anthropic's dev-container page states the general case plainly: with permissions bypassed, a container does not prevent "exfiltrating anything accessible inside the container, including the Claude Code credentials stored in `~/.claude`."
+**1. The key is in the box.** The API key arrives from Secrets Manager as an environment variable, and with permission prompts off, every command the agent runs inherits it. Anthropic's dev-container page states the general case plainly: with permissions bypassed, a container does not prevent "exfiltrating anything accessible inside the container, including the Claude Code credentials stored in `~/.claude`."
+
+Claude Code has an opt-in for exactly this, `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`. It removes credentials from the environment of the commands Claude Code starts, and on Linux it runs Bash in its own PID namespace, so a command cannot read the parent's environment through `/proc` either. The Claude Code process keeps the key, because it needs it to call the API. The scrub recognises a credential by the name of the variable or the shape of its value, and Anthropic's advice is to use it as one layer. It deliberately leaves `GITHUB_TOKEN` and `GH_TOKEN` in place so that `gh` keeps working, which means those two need scoping.
+
+We had not set it. We have now, in the image, and instead of trusting the setting we added the question to the harness: two more commands in the same guardrail run. One prints `key-hidden` or `key-VISIBLE` depending on whether the key is in the command's own environment. The other counts the `/proc/*/environ` files the command can read that contain the key's name. Neither prints the key, and both build their output at run time, so an agent that quotes the command in its answer cannot pass the check by accident.
+
+**[TO FILL IN from the AWS run (claude-docker-ecs PR 26): the same six commands on the old image and on the new one; key hidden, /proc count, whether `sts` still shows the task role, whether Bash still works. Remove this paragraph once filled in.]**
+
+The scrub does not change one thing: the agent itself still holds the key. A command cannot read it, but a hijacked session can still spend it through the agent's own model calls, so the cap, not the scrub, limits that.
 
 **2. Anywhere on 443.** Simon Willison's "lethal trifecta" is an agent that has private data, reads untrusted content and can communicate outward. Our box has all three. The private data is the clone and the keys. The untrusted content is every file the agent reads and every page it fetches. The way out is port 443, to anywhere. Anthropic recommends bypass mode "in isolated environments like containers, VMs, or dev containers without internet access"; ours has internet access, because the agent has to reach the model.
 
 ![The three legs of the lethal trifecta against our box: private data (the clone and the keys), untrusted content (every file it reads), and a way out (HTTPS to anywhere), each with what we do today and the lever that would narrow it.](images/b3-the-trifecta-ledger.png)
 *The three legs, what we do about each today, and the lever that would narrow it.*
 
-How small could the allowlist be? In Anthropic's network requirements, a headless run authenticated with an API key needs `api.anthropic.com`. The sign-in hosts are for OAuth, and the telemetry hosts are optional (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns them off). Add `github.com` for our clone and whatever a task installs, and that is two or three hostnames. A security group cannot express a hostname, so the options are a forward proxy (Claude Code honours `HTTPS_PROXY`), a network firewall with domain rules, or DNS-level filtering, which a connection to a bare IP address walks around. None is free. And a short list is not a closed channel: if `github.com` is on it and the token can push, a repository is a place to put data. An allowlist narrows the way out. Scoped tokens narrow what is worth sending.
+You can bound the way out or close it. The choice is made in the network, not in the container.
+
+**Bounded.** Put the tasks in private subnets and send their outbound traffic through something that understands hostnames. AWS Network Firewall can hold a domain allowlist: for HTTPS it reads the hostname from the TLS SNI field, for HTTP from the Host header, and it drops every request for a domain not on the list. A forward proxy does the same job, and Claude Code honours `HTTPS_PROXY`. The list can be short: per Anthropic's network requirements, a headless run with an API key needs `api.anthropic.com` (the sign-in hosts are for OAuth, and the telemetry hosts are optional). Add `github.com` for the clone and whatever a task installs, and that is two or three names. Two warnings. `egress=nat`, the mode our stack already has, filters nothing on its own: a NAT gateway translates addresses, it does not read names. And a short list is not a closed channel. If `github.com` is on it and the token can push, a repository is a place to put data. DNS-level filtering is weaker still, because a connection to a bare IP address never asks DNS.
+
+**Closed.** No route out at all: private subnets with no internet gateway and no NAT. Everything the task needs then has to be inside the VPC. AWS's ECS guide lists the interface endpoints a Fargate task needs when it has no internet route (ECR for the image, CloudWatch Logs for the logs, Secrets Manager for secrets), and the image layers come through an S3 gateway endpoint. The model has to be inside too. Claude Code can run against Amazon Bedrock, which offers a `bedrock-runtime` interface endpoint over PrivateLink. On Bedrock, Claude Code uses the default AWS credential chain, ECS task credentials included, so the API key goes away and the task role is allowed `bedrock:InvokeModel` on the models you pick.
+
+That swap trades a secret for a role, and it is not free: our own `sts` probe showed that a command in the box can sign requests as the task role. A role is scoped and short-lived, which beats a long-lived key, but a hijacked session can still use it. The rest of the bill: no `git clone` from GitHub (bake the code into the image, or fetch it from S3), no `pip install` or web fetch unless you mirror what you need, no WebSearch tool (not available on Bedrock), a model that must be enabled in your account and region, and interface endpoints billed by the hour per Availability Zone, plus per GB. And closed means closed to the internet, not to AWS: an S3 endpoint will talk to any bucket unless its endpoint policy says otherwise.
+
+![Three ways out: open, bounded and closed, compared on the route out, what can leave, what you add to the VPC, what stops working, where the model is and what credential it uses.](images/b5-three-ways-out.png)
+*Open is what we run today. The other two are changes to the network, not to the image.*
+
+Which one? Closed if the job fits it: a task that works on code already in the image and talks only to the model. Bounded if the agent has to reach the outside, and then with the allowlist written down and the token scoped to one repository. An allowlist narrows the way out. Scoped tokens narrow what is worth sending.
 
 **3. The prompt and the output are data at rest.** The prompt, the repository name and any `--env` values are part of the run request, so they are visible to anyone who can call `ecs:DescribeTasks` and they appear in CloudTrail. Everything the container prints goes to CloudWatch for 30 days. A workload under a zero-retention rule needs different plumbing: pass a pointer (a path, an object key), not the data, and write results to a store with its own expiry.
 
@@ -85,8 +104,8 @@ Our local `docker compose` route is a plain container on your machine, which sha
 2. **No host mounts you would not hand a stranger.** No `~/.ssh`, no cloud credential files, no Docker socket.
 3. **An empty cloud role.** Add permissions per task, never per image.
 4. **Scoped, short-lived tokens**, for one repository.
-5. **Put the key out of the shell's reach** (the scrub above), or keep it out of the box with a gateway that holds it.
-6. **Decide egress on purpose.** Default-deny if you can. If you cannot, write down what can leave.
+5. **Put the key out of the shell's reach** (the scrub above), or out of the box: a gateway that holds it, or a role in place of a key.
+6. **Decide egress on purpose.** Closed if the job fits, bounded if it does not, and written down if you can do neither.
 7. **A cap on every run**, above the context floor, treated as a ceiling with slack.
 8. **Probe the box from the inside, in CI, on every build.** A guardrail you do not test is a rumour.
 
@@ -99,7 +118,7 @@ scripts/deploy/ecs-in-docker.sh deploy
 scripts/deploy/ecs-in-docker.sh runs
 ```
 
-You need Docker and AWS credentials, not the AWS CLI. The first command builds and smoke-tests the image, checks the account, deploys the stack and pushes the image; the second runs the probes above and prints a report. The runbook, with every timing and cost, is in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**. `SECURITY.md` lists the known limitations, and this post adds to the list on purpose. If you find another leak, open an issue, or write to the address in `SECURITY.md` if it is a vulnerability.
+You need Docker and AWS credentials, not the AWS CLI. The first command builds and smoke-tests the image, checks the account, deploys the stack and pushes the image; the second runs the probes above, the two scrub probes included, and prints a report. The runbook, with every timing and cost, is in **[claude-docker-public](https://github.com/fibtecltd/claude-docker-public)**. `SECURITY.md` lists the known limitations, and this post adds to the list on purpose. If you find another leak, open an issue, or write to the address in `SECURITY.md` if it is a vulnerability.
 
 ## Sources
 
@@ -111,8 +130,9 @@ The measurements are ours: sixteen runs on one AWS account in one region, one sa
 - [Choose a sandbox environment](https://code.claude.com/docs/en/sandbox-environments): the comparison of the sandboxed Bash tool, the sandbox runtime, dev containers, custom containers, VMs and cloud sessions; the custom-container checklist quoted above.
 - [Development containers](https://code.claude.com/docs/en/devcontainer): the warning about exfiltration with permissions bypassed, and the example default-deny firewall.
 - [Configure the sandboxed Bash tool](https://code.claude.com/docs/en/sandboxing): how the Bash sandbox isolates commands, and what it does not cover.
-- [Environment variables](https://code.claude.com/docs/en/env-vars): `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
+- [Environment variables](https://code.claude.com/docs/en/env-vars): `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` (what it removes and what it leaves: GitHub tokens, proxy variables, the PID namespace) and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
 - [Enterprise network configuration](https://code.claude.com/docs/en/network-config): the hosts Claude Code needs to reach, and `HTTPS_PROXY`.
+- [Claude Code on Amazon Bedrock](https://code.claude.com/docs/en/amazon-bedrock): the default AWS credential chain with ECS task credentials, the IAM actions it needs, and that WebSearch is not available there.
 
 **Threat models**
 
@@ -122,6 +142,9 @@ The measurements are ours: sixteen runs on one AWS account in one region, one sa
 **AWS**
 
 - [Firecracker: lightweight virtualization for serverless computing](https://aws.amazon.com/about-aws/whats-new/2018/11/firecracker-lightweight-virtualization-for-serverless-computing), AWS, 26 November 2018: Fargate tasks execute on Firecracker microVMs.
+- [RulesSourceList](https://docs.aws.amazon.com/network-firewall/latest/APIReference/API_RulesSourceList.html), AWS Network Firewall API reference: domain allowlists, matched on the TLS SNI field for HTTPS and the Host header for HTTP.
+- [Amazon ECS interface VPC endpoints](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/vpc-endpoints.html): the endpoints a Fargate task needs to pull from ECR, read Secrets Manager and write logs without an internet route.
+- [Use interface VPC endpoints (AWS PrivateLink) with Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html): the `bedrock-runtime` endpoint.
 
 **This project**
 
