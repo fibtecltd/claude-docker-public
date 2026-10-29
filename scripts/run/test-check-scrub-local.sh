@@ -111,25 +111,36 @@ reset; export STUB_B="This command requires approval"; checkit
 expect "neither works: the scrub cannot run in this Docker" 0 "cannot run in this Docker"
 expect "...and not even a plain command ran" 0 "not even a plain command ran"
 expect "...B's line says every command was blocked" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: every command was blocked, even a trivial one"
-expect "...and quotes what Claude Code said" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: every command was blocked, even a trivial one; Claude Code said: \"This command requires approval\" (exit 0)"
+expect "...and quotes what the agent reported" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: every command was blocked, even a trivial one; the agent reported: \"This command requires approval\" (exit 0)"
 expect "...and the control shows that the scrub-on sandbox is what stops them" 0 "so what stops them is the scrub-on sandbox"
 # What Docker on a Mac printed on 2026-10-29 once the probe had plain commands: the image had no socat, so the sandbox
 # could not start (the first message), and the agent reported the others as refused too.
 SOCAT_A=$'All five commands were blocked. None of them produced any output.\n\n1. `Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.`\n2. `This Bash command contains multiple operations. The following part requires approval: printenv ANTHROPIC_API_KEY`\n3. `Accesses /proc/*/environ which may expose secrets`\n4. `A variable in braces in this command can\'t be checked before it runs`'
 SOCAT_B=$'None of the five commands ran. Each one returned an error:\n\n1. `printf \'plain-%s\\n\' ok`\n   `Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.`\n\n2. `printenv ANTHROPIC_API_KEY ...`\n   `This Bash command contains multiple operations. The following part requires approval: printenv ANTHROPIC_API_KEY`'
 reset; export STUB_A="$SOCAT_A" STUB_B="$SOCAT_B"; checkit
-expect "the first reason Claude Code gives is quoted, without the list number or backticks" 0 "A  scrub on, default flags: COULD NOT RUN: every command was blocked, even a trivial one; Claude Code said: \"Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.\" (exit 0)"
-expect "...also when the agent indents it under its command" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: every command was blocked, even a trivial one; Claude Code said: \"Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.\" (exit 0)"
-expect "...and the conclusion does not claim the setup is cleared" 0 "what stops them is the scrub-on sandbox: the lines above quote what Claude Code said"
+expect "the first reason the agent gives is quoted, without the list number or backticks" 0 "A  scrub on, default flags: COULD NOT RUN: every command was blocked, even a trivial one; the agent reported: \"Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.\" (exit 0)"
+expect "...also when the agent indents it under its command" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: every command was blocked, even a trivial one; the agent reported: \"Sandbox is required but failed to initialize: Sandbox dependencies not available: socat not installed. Restart to retry.\" (exit 0)"
+expect "...and the conclusion does not claim the setup is cleared" 0 "what stops them is the scrub-on sandbox: the lines above quote what the agent reported"
 reset; export STUB_A="Sandbox is required but failed to initialize: socat not installed. Restart to retry."; checkit
-expect "a sandbox that cannot start counts as every command blocked, whatever else the agent says" 0 "A  scrub on, default flags: COULD NOT RUN: every command was blocked, even a trivial one; Claude Code said: \"Sandbox is required but failed to initialize: socat not installed. Restart to retry.\""
+expect "a sandbox that cannot start counts as every command blocked, whatever else the agent says" 0 "A  scrub on, default flags: COULD NOT RUN: every command was blocked, even a trivial one; the agent reported: \"Sandbox is required but failed to initialize: socat not installed. Restart to retry.\""
 LONG="Sandbox is required: $(printf '%0300d' 0 | tr 0 x)"
 reset; export STUB_A="$LONG"; checkit
 # The run's own output is echoed on screen in full; the verdict line is the one that starts with the variant.
 check "a reason longer than 200 characters is cut in the verdict line" test -z "$(printf '%s' "$OUT" | grep '^A  scrub on' | grep 'x\{201\}' || true)"
 check "...but it is not cut shorter than that" test -n "$(printf '%s' "$OUT" | grep '^A  scrub on' | grep 'x\{150\}' || true)"
 reset; checkit
-expect "a namespace error is quoted too" 0 "COULD NOT RUN: bubblewrap could not create a namespace; Claude Code said: \"bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.\""
+# The two lines the agent wrote on Docker for macOS (2026-10-29, socat installed): its own markdown around the bwrap message.
+MAC_A=$'1. `printf \'plain-%s\\n\' ok` \u2014 **Blocked by the sandbox**: `bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.'
+MAC_B=$'1. `printf \'plain-%s\\n\' ok` failed with `bwrap: pivot_root: Operation not permitted`.'
+reset; export STUB_A="$MAC_A" STUB_B="$MAC_B"; checkit
+expect "the quote starts at bwrap: and drops the agent's markdown" 0 "A  scrub on, default flags: COULD NOT RUN: bubblewrap could not create a namespace; the agent reported: \"bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.\" (exit 0)"
+expect "a bwrap error that is not the namespace error is not called one" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: bubblewrap failed; the agent reported: \"bwrap: pivot_root: Operation not permitted\" (exit 0)"
+reset; export STUB_A=$'bwrap: first error\nlater bwrap: second error'; checkit
+expect "with bwrap: on two lines, the first line is quoted" 0 "the agent reported: \"bwrap: first error\""
+reset; export STUB_A="it failed: bwrap: one error, then bwrap: two"; checkit
+expect "with bwrap: twice on a line, the quote starts at the first" 0 "the agent reported: \"bwrap: one error, then bwrap: two\""
+reset; checkit
+expect "a namespace error is quoted too" 0 "COULD NOT RUN: bubblewrap could not create a namespace; the agent reported: \"bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.\""
 # What the first Docker-on-a-Mac run printed: only the two ${}/loop commands were tried, and both were refused.
 reset; export STUB_A="$REFUSED" STUB_B="$REFUSED"; checkit
 expect "a refusal of every command is told from a sandbox that could not start" 0 "A  scrub on, default flags: COULD NOT RUN: every command was blocked, even a trivial one"
@@ -143,7 +154,7 @@ expect "the \${}/loop commands that print nothing are reported as such" 0 "the c
 reset; export STUB_A="$PLAIN_HIDDEN"$'\n'"key-hidden"; checkit
 expect "...and one that ran is reported as the only one" 0 "the commands with \${} and a loop: only one ran (exit 0)"
 reset; export STUB_A=$'plain-ok\nA variable in braces in this command can\'t be checked before it runs' STUB_B=$'plain-ok\nThis command requires approval'; checkit
-expect "a plain command that ran without a key answer is PARTLY RAN" 0 "A  scrub on, default flags: PARTLY RAN: a plain command ran, but the key check gave no answer; Claude Code said: \"A variable in braces in this command can't be checked before it runs\"; the commands with \${} and a loop: refused (exit 0)"
+expect "a plain command that ran without a key answer is PARTLY RAN" 0 "A  scrub on, default flags: PARTLY RAN: a plain command ran, but the key check gave no answer; the agent reported: \"A variable in braces in this command can't be checked before it runs\"; the commands with \${} and a loop: refused (exit 0)"
 expect "...and the conclusion says to read the log" 0 "Plain commands run with the scrub on here, but the key and /proc checks gave no answer: read the log"
 reset; export STUB_A="key-VISIBLE
 proc-environ-with-key: 2" STUB_B="This command requires approval"; checkit

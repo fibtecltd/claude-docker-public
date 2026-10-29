@@ -129,17 +129,22 @@ classify() {
     if [ "$KEYVIS" = "n/a" ]; then
         if [ "$PLAIN" = "yes" ]; then
             NOTE="a plain command ran, but the key check gave no answer"
-        elif grep -qi 'No permissions to create new namespace\|bwrap:' "$f"; then
+        elif grep -qi 'No permissions to create new namespace' "$f"; then
             NOTE="bubblewrap could not create a namespace"
+        elif grep -qi 'bwrap:' "$f"; then
+            NOTE="bubblewrap failed"
         elif grep -qi 'Sandbox is required\|requires approval\|blocked\|can.t be checked' "$f"; then
             NOTE="every command was blocked, even a trivial one"
         else
             NOTE="no marker in the output (see the log)"
         fi
-        # Claude Code's own words for why: the first line that says so, without list numbers or backticks.
+        # The agent's words for why: the first line that says so, from "bwrap:" on if it has one, without list
+        # numbers, backticks or the agent's own markdown around the message; cut at 200 characters.
+        REASON="$(grep -m1 -i 'Sandbox is required\|bwrap:\|requires approval\|can.t be checked' "$f")" || REASON=""
+        case "$REASON" in *bwrap:*) REASON="bwrap:${REASON#*bwrap:}" ;; esac
         # shellcheck disable=SC2016  # the backticks are characters for sed to strip, not a command substitution
-        REASON="$(grep -m1 -i 'Sandbox is required\|bwrap:\|requires approval\|can.t be checked' "$f" \
-            | sed 's/^[[:space:]]*[0-9]*[.)]*[[:space:]]*//; s/^[`[:space:]]*//; s/[`[:space:]]*$//' | cut -c1-200)" || REASON=""
+        REASON="$(printf '%s' "$REASON" \
+            | sed 's/^[[:space:]]*[0-9]*[.)]*[[:space:]]*//; s/^[`[:space:]]*//; s/[`[:space:]]*$//; s/`\.$//' | cut -c1-200)"
     fi
 }
 works() { [ "$KEYVIS" = "no" ] && [ "$PROCN" = "0" ]; } # the key is hidden and no /proc/*/environ holds it
@@ -160,7 +165,7 @@ verdict_line() { # verdict_line LABEL TEXT -> "A  scrub on, default flags: ..."
         partly) what="PARTLY RAN: $NOTE" ;;
         *) what="COULD NOT RUN: $NOTE" ;;
     esac
-    [ -z "$REASON" ] || what="$what; Claude Code said: \"$REASON\""
+    [ -z "$REASON" ] || what="$what; the agent reported: \"$REASON\""
     [ "$PLAIN" != "yes" ] || what="$what; the commands with \${} and a loop: $FORMS"
     printf '%s  %s: %s (exit %s)\n' "$1" "$2" "$what" "$(cat "$TMP/$1.rc")"
 }
@@ -183,7 +188,7 @@ elif [ "$STATE_A" = partly ] || [ "$STATE_B" = partly ]; then
 else
     CONCLUSION="The scrub cannot run in this Docker: neither with its default flags nor with --cap-add SYS_ADMIN, and not even a plain command ran."
     if [ "$CONTROL" = 1 ]; then
-        if [ "$C_RAN" = "yes" ]; then CONCLUSION="$CONCLUSION The control ran its commands with the scrub off, so what stops them is the scrub-on sandbox: the lines above quote what Claude Code said, and a missing package in the image shows up there."
+        if [ "$C_RAN" = "yes" ]; then CONCLUSION="$CONCLUSION The control ran its commands with the scrub off, so what stops them is the scrub-on sandbox: the lines above quote what the agent reported, and a missing package in the image shows up there."
         elif [ "$C_RAN" = "no" ]; then CONCLUSION="$CONCLUSION The control showed no key even with the scrub off, which is unexpected: read its log."
         else CONCLUSION="$CONCLUSION The control could not run its commands either: read the log before drawing a conclusion."; fi
     fi
