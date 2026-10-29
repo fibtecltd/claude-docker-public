@@ -19,7 +19,7 @@ Design choices that matter on ECS:
 - `ENTRYPOINT` is `ecs-claude`, a small wrapper that adds the selected profile's plugins, optionally clones a repository (`CLAUDE_REPO`, `CLAUDE_REF`), and then `exec`s `claude`, so container arguments are still Claude Code arguments. A headless run is `-p "…"`, which maps directly onto an ECS command override.
 - No agents, commands, skills or hooks are baked into the user-level config; they come from plugins and from the project being worked on. The only user-level file is `claude-config/settings.json` (model, effort levels, permission mode).
 - Plugins are plain directories fetched at the commits pinned in `plugins.lock` (no marketplace, no install step), owned by root and read-only for the `claude` user.
-- The API key is in the environment of every command the agent runs. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` would hide it, but it runs commands through `bubblewrap`, which cannot create a user namespace in a Fargate task, so the image leaves it off and it must not be switched on in a task (runbook, section 6). The image installs `bubblewrap` for runtimes where it works, for example `docker compose run -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 …`.
+- The API key is in the environment of every command the agent runs. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` would hide it, but it runs commands through `bubblewrap`, which cannot create a user namespace in a Fargate task, so the image leaves it off and it must not be switched on in a task (runbook, section 6). The image installs `bubblewrap` and `socat` (the two packages Claude Code's Linux sandbox needs) for runtimes where it works, for example `docker compose run -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 …`.
 - The optional GitHub token used while fetching plugins is a BuildKit secret mount, not a build argument, so it does not end up in image history.
 - Versions are pinned where they can be: Claude Code (`CLAUDE_CODE_VERSION`), `uv`, the Stripe CLI (`STRIPE_CLI_VERSION`). The SSM plugin is not.
 
@@ -133,7 +133,7 @@ Done:
 
 Known limits, measured (details in `docs/runbook.md`, section 6):
 
-- A command the agent runs can read the API key from its environment. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` hides it where `bubblewrap` can create namespaces; neither a Fargate task nor Docker on macOS allowed that in our runs, so the image leaves the scrub off. `scripts/run/check-scrub-local.sh` checks whether your own Docker allows it.
+- A command the agent runs can read the API key from its environment. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` hides it where `bubblewrap` can create namespaces. Neither a Fargate task nor Docker on macOS allowed that in our runs (on a Fargate task and with Docker's default flags `bwrap` cannot create a namespace; with `--cap-add SYS_ADMIN` on macOS it fails later, at `pivot_root`), so the image leaves the scrub off. `scripts/run/check-scrub-local.sh` checks whether your own Docker allows it.
 - Outbound HTTPS is open to any host by default; it can be restricted to an allowlist (runbook, section 6).
 
 Not yet run: concurrency and Spot (group G5 of `first-runs.sh`).
