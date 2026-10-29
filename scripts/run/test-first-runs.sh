@@ -41,7 +41,7 @@ cat > "$WORK/run-task.sh" <<'STUB'
 #!/bin/bash
 echo "$$" >> "$WORK/rt.calls"   # one line per call; parallel calls must not share a counter
 echo "$*" >> "$WORK/rt.args"
-profile=""; budget=""; turns=""; repo=""; ref=""; spot=""; model=""; prompt=""; fmt=""
+profile=""; budget=""; turns=""; repo=""; ref=""; spot=""; model=""; prompt=""; fmt=""; envs=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --profile) profile="$2"; shift 2 ;;
@@ -52,11 +52,12 @@ while [ $# -gt 0 ]; do
         --model) model="$2"; shift 2 ;;
         --prompt) prompt="$2"; shift 2 ;;
         --output-format) fmt="$2"; shift 2 ;;
+        --env) envs="$envs $2"; shift 2 ;;
         --spot) spot=1; shift ;;
         *) shift ;;
     esac
 done
-echo "call $$ profile=$profile model=${model:-default} budget=$budget turns=$turns repo=$repo ref=$ref spot=${spot:-0}" >> "$WORK/rt.log"
+echo "call $$ profile=$profile model=${model:-default} budget=$budget turns=$turns repo=$repo ref=$ref spot=${spot:-0} env=${envs# }" >> "$WORK/rt.log"
 id="run$$"; [ -z "$spot" ] || id=spot
 echo "start $id" >> "$WORK/rt.order"
 sleep "${RT_SLEEP:-0}"
@@ -84,7 +85,14 @@ outside the njit kernel; the shocks array is passed to _simulate_paths as an arg
 3) 200"
         if [ -n "${STUB_PORT80_OPEN:-}" ]; then text="$text
 4) 200"; else text="$text
-4) curl exit 28: connection timed out"; fi ;;
+4) curl exit 28: connection timed out"; fi
+        # What the agent quotes of commands 5 and 6 must not match the patterns by itself.
+        if [ -n "${STUB_KEY_VISIBLE:-}" ]; then text="$text
+5) exit 0: key-VISIBLE"; else text="$text
+5) exit 0: key-hidden"; fi
+        if [ -n "${STUB_PROC_DIRTY:-}" ]; then text="$text
+6) exit 0: proc-environ-with-key: 2"; else text="$text
+6) exit 0: proc-environ-with-key: 0"; fi ;;
     *) text="ok" ;;
 esac
 if [ "$fmt" = json ] && [ -z "${STUB_PLAIN:-}" ]; then
@@ -120,7 +128,7 @@ export PATH="$BIN:$PATH"
 export RUN_TASK="$WORK/run-task.sh" ECS_DEPLOY="$WORK/ecs-deploy.sh"
 export AWS_REGION=eu-west-1
 
-reset() { rm -rf "$FIX" "$WORK"/*.log "$WORK"/rt.order "$WORK"/rt.calls "$WORK"/rt.args "$WORK"/running.calls; mkdir -p "$FIX"; unset RT_SLEEP STUB_VERIFY_RC STUB_G3 STUB_CAP_OK STUB_PORT80_OPEN STUB_PLAIN; }
+reset() { rm -rf "$FIX" "$WORK"/*.log "$WORK"/rt.order "$WORK"/rt.calls "$WORK"/rt.args "$WORK"/running.calls; mkdir -p "$FIX"; unset RT_SLEEP STUB_VERIFY_RC STUB_G3 STUB_CAP_OK STUB_PORT80_OPEN STUB_KEY_VISIBLE STUB_PROC_DIRTY STUB_PLAIN; }
 first() { OUT="$("$FIRST" --report "$WORK/report.md" "$@" 2>&1)" && RC=0 || RC=$?; }
 expect() { # expect "name" EXIT_CODE "text that must be in the output"
     if [ "$RC" = "$2" ] && printf '%s' "$OUT" | grep -qF -- "$3"; then ok "$1"; else fail "$1 (exit $RC, wanted $2, text '$3')"; echo "$OUT" >&2; fi
@@ -190,13 +198,24 @@ expect "a thin answer scores low on the rubric" 0 "Rubric score: 1/6"
 reset; first --groups G4
 expect "G4 completes" 0 "G4a - spend cap"
 check "the cap run uses USD 0.05" logged "budget=0.05 turns=10" rt.log
-check "the role and egress run is in the report" grep -qF "G4b - task role and egress" "$WORK/report.md"
+check "the role and egress run switches the scrub on" logged "budget=0.50 turns=10 repo= ref= spot=0 env=CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1" rt.log
+check "...and the spend-cap run does not (the image default, off, applies)" logged "budget=0.05 turns=10 repo=fibtecltd/pyvar ref=master spot=0 env=" rt.log
+check "the role and egress run is in the report" grep -qF "G4b - task role, egress and the credential scrub" "$WORK/report.md"
 check "both guardrails behaved as designed: 2 of 2" grep -qF "**Behaved as designed: 2 of 2**" "$WORK/report.md"
 reset; export STUB_CAP_OK=1; first --groups G4
 check "a task that finishes under the cap does not count as the cap working" grep -qF "**Behaved as designed: 1 of 2**" "$WORK/report.md"
 reset; export STUB_PORT80_OPEN=1; first --groups G4
 check "an open port 80 does not count as blocked" grep -qF "80 blocked: NO" "$WORK/report.md"
 check "...so that run did not behave as designed" grep -qF "**Behaved as designed: 1 of 2**" "$WORK/report.md"
+reset; export STUB_KEY_VISIBLE=1; first --groups G4
+check "a key visible to the agent's commands is flagged" grep -qF "key hidden: NO" "$WORK/report.md"
+check "...so that run did not behave as designed" grep -qF "**Behaved as designed: 1 of 2**" "$WORK/report.md"
+reset; export STUB_PROC_DIRTY=1; first --groups G4
+check "a key readable from /proc/*/environ is flagged" grep -qF "proc clean: NO" "$WORK/report.md"
+check "...so that run did not behave as designed" grep -qF "**Behaved as designed: 1 of 2**" "$WORK/report.md"
+reset; first --groups G4
+check "a clean run shows the scrub verdicts" grep -qF "key hidden: yes, proc clean: yes" "$WORK/report.md"
+check "the role prompt asks for six commands in 10 turns" logged "budget=0.50 turns=10" rt.log
 
 # ── concurrency ──
 reset; export RT_SLEEP=1; first --groups G5

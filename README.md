@@ -19,6 +19,7 @@ Design choices that matter on ECS:
 - `ENTRYPOINT` is `ecs-claude`, a small wrapper that adds the selected profile's plugins, optionally clones a repository (`CLAUDE_REPO`, `CLAUDE_REF`), and then `exec`s `claude`, so container arguments are still Claude Code arguments. A headless run is `-p "…"`, which maps directly onto an ECS command override.
 - No agents, commands, skills or hooks are baked into the user-level config; they come from plugins and from the project being worked on. The only user-level file is `claude-config/settings.json` (model, effort levels, permission mode).
 - Plugins are plain directories fetched at the commits pinned in `plugins.lock` (no marketplace, no install step), owned by root and read-only for the `claude` user.
+- `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is off by default and switched on per run (`run-task.sh --env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, or `docker compose run -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 …`). With 1, the commands the agent runs do not inherit the API key, and on Linux run in their own PID namespace so they cannot read it from `/proc`. Claude Code itself keeps the key for its API calls, and `GITHUB_TOKEN`/`GH_TOKEN` are left in place by design, so scope them. The image installs `bubblewrap`, which the scrub needs.
 - The optional GitHub token used while fetching plugins is a BuildKit secret mount, not a build argument, so it does not end up in image history.
 - Versions are pinned where they can be: Claude Code (`CLAUDE_CODE_VERSION`), `uv`, the Stripe CLI (`STRIPE_CLI_VERSION`). The SSM plugin is not.
 

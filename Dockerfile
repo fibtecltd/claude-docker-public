@@ -29,6 +29,8 @@
 #   - the GitHub token comes from a BuildKit secret mount, not ARG, so it never
 #     lands in image history (and therefore never in ECR)
 #   - minimal inline ~/.claude.json (no personal state); auto-updater disabled
+#   - commands the agent runs can be made not to inherit the API key: CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1,
+#     off by default, switched on per run (bubblewrap is installed for it)
 # ============================================================
 
 # ── Stage 1: ecs-base ─────────────────────────────────────────────
@@ -44,6 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     jq \
+    bubblewrap \
     && rm -rf /var/lib/apt/lists/*
 
 # GitHub CLI — from the official apt repository.
@@ -109,8 +112,19 @@ RUN printf '%s\n' '{"hasCompletedOnboarding":true,"autoUpdates":false,"theme":"d
 
 USER claude
 
+# CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: off by default, switched on per run. With 1, Claude Code removes
+# credentials (ANTHROPIC_API_KEY among them) from the environment of the commands it runs, and on Linux runs
+# them in their own PID namespace so they cannot read the parent's environment through /proc. The Claude Code
+# process itself keeps the key for its API calls. GITHUB_TOKEN and GH_TOKEN are left in place by design, so
+# `gh` keeps working: scope them. Switch it on for a task:
+#   scripts/run/run-task.sh ... --env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1
+#   docker compose run --rm -e CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 claude-ecs-base -p "..."
+# It needs bubblewrap (installed above): with the scrub on and bubblewrap missing, Claude Code exits at start
+# with "bubblewrap is required for subprocess env scrubbing and isolation".
+# scripts/run/first-runs.sh (G4b) switches it on and checks it from inside a running task.
 ENV DISABLE_AUTOUPDATER=1 \
     CLAUDE_CODE_SKIP_ONBOARDING=1 \
+    CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=0 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /workspace

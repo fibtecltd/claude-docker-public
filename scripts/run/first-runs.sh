@@ -12,7 +12,8 @@
 #   G1  cold and warm start of the core profile, trivial prompt
 #   G2  the model matrix on one trivial prompt, plus Haiku 5.5 at --effort max
 #   G3  a read-only question about a public repository (pyvar, --ref master)
-#   G4  guardrails: a spend cap that is hit, the task role and the egress rules
+#   G4  guardrails: a spend cap that is hit, the task role and the egress rules, and the
+#       credential scrub (switched on for that run with --env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1)
 #   G5  three tasks at once, then one on Fargate Spot
 # and writes a markdown report (timings, outcomes, evidence) that is also printed. It ends with a
 # Quality section: the pyvar answer scored against 6 facts taken from engine/montecarlo.py, and
@@ -50,7 +51,23 @@ die() { echo "first-runs: $*" >&2; exit 2; }
 TRIVIAL='Read-only: reply with exactly: ok'
 PYVAR_PROMPT='Read-only: do not modify or create any file and do not push anything. In at most 8 lines, explain how engine/montecarlo.py gets its random numbers: where they are drawn, whether the draw happens inside or outside the Numba-compiled kernel, how the numbers reach the kernel, and how a seed is applied. Name the functions involved.'
 CAP_PROMPT='Read-only: read engine/montecarlo.py and engine/metrics.py completely, then write a detailed review of about 400 words for each file. Do not modify anything.'
-ROLE_PROMPT="Read-only: run exactly these four shell commands, one at a time, and for each report its exit code and the first 3 lines of its output, nothing else. 1) aws sts get-caller-identity 2) aws s3 ls 3) curl -sS -m 8 -o /dev/null -w '%{http_code}' https://api.github.com 4) curl -sS -m 8 -o /dev/null -w '%{http_code}' http://example.com . Do not retry a command and do not try to fix an error."
+# Commands 5 and 6 check that CLAUDE_CODE_SUBPROCESS_ENV_SCRUB works from inside a running task (the scrub
+# is off in the image; this run switches it on, see SCRUB_RUNS): the
+# API key must not be in the environment of a command the agent runs, nor readable from /proc. They
+# print a marker built at run time ("key-$s", "...: $n") so that the agent quoting the command text
+# in its answer cannot match the patterns below by accident. They never print the key.
+IFS= read -r -d '' ROLE_PROMPT <<'EOF' || true
+Read-only: run exactly these six shell commands, one at a time, and for each report its exit code and the first 3 lines of its output, nothing else. The commands are the text between backticks.
+1) `aws sts get-caller-identity`
+2) `aws s3 ls`
+3) `curl -sS -m 8 -o /dev/null -w '%{http_code}' https://api.github.com`
+4) `curl -sS -m 8 -o /dev/null -w '%{http_code}' http://example.com`
+5) `if [ -n "${ANTHROPIC_API_KEY:-}" ]; then s=VISIBLE; else s=hidden; fi; echo "key-$s"`
+6) `n=0; for f in /proc/[0-9]*/environ; do grep -qa ANTHROPIC_API_KEY "$f" 2>/dev/null && n=$((n+1)); done; echo "proc-environ-with-key: $n"`
+Do not retry a command and do not try to fix an error. Never print the value of any variable.
+EOF
+ROLE_PROMPT="${ROLE_PROMPT//$'\n'/ }"
+ROLE_PROMPT="${ROLE_PROMPT% }"
 
 # id|group|mode|profile|model|effort|spot|repo|ref|turns|budget|prompt
 spec_table() {
@@ -65,7 +82,7 @@ G2-haiku-5-5|G2|seq|core|claude-haiku-5-5||0|||1|0.25|$TRIVIAL
 G2-haiku-5-5-max|G2|seq|core|claude-haiku-5-5|max|0|||1|0.25|$TRIVIAL
 G3-pyvar-read|G3|seq|pyvar|||0|fibtecltd/pyvar|master|15|1.00|$PYVAR_PROMPT
 G4-budget-cap|G4|seq|pyvar|||0|fibtecltd/pyvar|master|10|0.05|$CAP_PROMPT
-G4-role-egress|G4|seq|core|||0|||8|0.50|$ROLE_PROMPT
+G4-role-egress|G4|seq|core|||0|||10|0.50|$ROLE_PROMPT
 G5-par-1|G5|par|core|||0|||1|0.25|$TRIVIAL
 G5-par-2|G5|par|core|||0|||1|0.25|$TRIVIAL
 G5-par-3|G5|par|core|||0|||1|0.25|$TRIVIAL
@@ -91,6 +108,7 @@ done
 if [ -z "$SELECT" ]; then SET_LABEL="the quick set"; else SET_LABEL="groups $SELECT"; fi
 
 QUICK_IDS=" G1-cold G1-warm G3-pyvar-read G4-budget-cap G4-role-egress "
+SCRUB_RUNS=" G4-role-egress "   # runs that switch CLAUDE_CODE_SUBPROCESS_ENV_SCRUB on; every other run uses the image default (off)
 selected() { # selected ID GROUP
     if [ -z "$SELECT" ]; then
         case "$QUICK_IDS" in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -103,7 +121,7 @@ selected() { # selected ID GROUP
 PLAN="$(mktemp)"
 OUT="$(mktemp -d)"
 CLUSTER="" PIDS=""
-# shellcheck disable=SC2317  # called through the EXIT trap
+# shellcheck disable=SC2317,SC2329  # called through the EXIT trap
 stop_ours() {
     local arns a
     arns="$(aws ecs list-tasks --cluster "$CLUSTER" --started-by claude-ecs-run-task --desired-status RUNNING \
@@ -112,14 +130,14 @@ stop_ours() {
         aws ecs stop-task --cluster "$CLUSTER" --task "$a" --reason "first-runs.sh interrupted" >/dev/null 2>&1 || true
     done
 }
-# shellcheck disable=SC2317  # called through the INT/TERM trap
+# shellcheck disable=SC2317,SC2329  # called through the INT/TERM trap
 on_signal() {
     echo; echo "Interrupted: stopping the tasks this script started."
     # shellcheck disable=SC2086
     [ -z "$PIDS" ] || kill $PIDS 2>/dev/null || true
     exit 130   # the EXIT trap stops the tasks
 }
-# shellcheck disable=SC2317  # called through the EXIT trap
+# shellcheck disable=SC2317,SC2329  # called through the EXIT trap
 cleanup() {
     rm -rf "$PLAN" "$OUT"
     # Whatever happens, no task this script started is left running.
@@ -189,6 +207,7 @@ run_one() { # run_one SPEC_ROW -> $OUT/<id>.out (run-task output) and $OUT/<id>.
     [ "$spot" != 1 ] || args+=(--spot)
     [ -z "$repo" ] || args+=(--repo "$repo")
     [ -z "$ref" ] || args+=(--ref "$ref")
+    case "$SCRUB_RUNS" in *" $id "*) args+=(--env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1) ;; esac
     "$RUN_TASK" "${args[@]}" > "$OUT/$id.out" 2>&1 || rc=$?
     echo "$rc" > "$OUT/$id.rc"
 }
@@ -299,7 +318,7 @@ yn() { if has "$1" "$2"; then echo yes; else echo NO; fi; }
 
 # The Quality section: printed last, inside the report block (it counts in that shell).
 quality_section() {
-    local id ans full rc ok obs ident s3 https blocked
+    local id ans full rc ok obs ident s3 https blocked keyhid proc
     echo "## Quality"
     if [ -f "$OUT/G3-pyvar-read.rc" ]; then
         G3_ANSWER="$(result_text G3-pyvar-read 200)"
@@ -351,9 +370,14 @@ quality_section() {
         s3="$(yn "$full" 'AccessDenied|access denied|not authorized|denied|forbidden')"
         https="$(yn "$full" '(^|[^0-9])200([^0-9]|$)')"
         blocked="$(yn "$full" '(^|[^0-9])000([^0-9]|$)|time(d)?[ -]?out|timeout|exit( code)?:? ?(28|7)([^0-9]|$)|could not connect|refused|blocked')"
+        # The scrub: the marker must say hidden and never VISIBLE; the count of /proc/*/environ that
+        # hold the key name must be 0 (a PID namespace shows the command only its own processes).
+        keyhid=NO
+        if has "$full" 'key-hidden' && ! has "$full" 'key-VISIBLE'; then keyhid=yes; fi
+        proc="$(yn "$full" 'proc-environ-with-key: 0([^0-9]|$)')"
         ok=0
-        if [ "$ident$s3$https$blocked" = "yesyesyesyes" ]; then ok=1; fi
-        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked" "$ok"
+        if [ "$ident$s3$https$blocked$keyhid$proc" = "yesyesyesyesyesyes" ]; then ok=1; fi
+        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked; with the scrub switched on: API key not in the command environment, no /proc/*/environ holds it" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked, key hidden: $keyhid, proc clean: $proc" "$ok"
     fi
     echo
     echo "**Behaved as designed: $BEH_OK of $BEH_TOTAL**"
@@ -412,7 +436,7 @@ model_matrix() {
         case "$id" in
             G3-pyvar-read) echo "## G3 - read-only question about pyvar (--ref master)" ;;
             G4-budget-cap) echo "## G4a - spend cap of USD 0.05 on a task that needs more" ;;
-            G4-role-egress) echo "## G4b - task role and egress" ;;
+            G4-role-egress) echo "## G4b - task role, egress and the credential scrub (switched on for this run)" ;;
         esac
         echo
         echo "Exit code $(exit_of "$id"); stopped: $(grep -E '^stopped:' "$OUT/$id.out" | head -n 1 | sed 's/^stopped: *//')"

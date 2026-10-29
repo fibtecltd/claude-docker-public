@@ -76,6 +76,9 @@ jobs:
       - name: ecs-in-docker.sh against a stubbed docker (no Docker, no AWS)
         run: scripts/deploy/test-ecs-in-docker.sh
 
+      - name: verify-scrub.sh against a stubbed wrapper (no Docker, no AWS)
+        run: scripts/deploy/test-verify-scrub.sh
+
       - name: first-runs.sh and run-task.sh against stubs (no AWS calls)
         run: |
           scripts/run/test-first-runs.sh
