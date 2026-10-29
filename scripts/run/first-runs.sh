@@ -13,7 +13,7 @@
 #   G2  the model matrix on one trivial prompt, plus Haiku 5.5 at --effort max
 #   G3  a read-only question about a public repository (pyvar, --ref master)
 #   G4  guardrails: a spend cap that is hit, the task role and the egress rules, and the
-#       credential scrub (switched on for that run with --env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1)
+#       what a command can see of the API key (reported, not judged)
 #   G5  three tasks at once, then one on Fargate Spot
 # and writes a markdown report (timings, outcomes, evidence) that is also printed. It ends with a
 # Quality section: the pyvar answer scored against 6 facts taken from engine/montecarlo.py, and
@@ -51,9 +51,9 @@ die() { echo "first-runs: $*" >&2; exit 2; }
 TRIVIAL='Read-only: reply with exactly: ok'
 PYVAR_PROMPT='Read-only: do not modify or create any file and do not push anything. In at most 8 lines, explain how engine/montecarlo.py gets its random numbers: where they are drawn, whether the draw happens inside or outside the Numba-compiled kernel, how the numbers reach the kernel, and how a seed is applied. Name the functions involved.'
 CAP_PROMPT='Read-only: read engine/montecarlo.py and engine/metrics.py completely, then write a detailed review of about 400 words for each file. Do not modify anything.'
-# Commands 5 and 6 check that CLAUDE_CODE_SUBPROCESS_ENV_SCRUB works from inside a running task (the scrub
-# is off in the image; this run switches it on, see SCRUB_RUNS): the
-# API key must not be in the environment of a command the agent runs, nor readable from /proc. They
+# Commands 5 and 6 report what a command the agent runs can see of the API key: whether it is in the
+# command's environment, and how many /proc/*/environ files hold it. They are reported, not judged (the
+# scrub that would hide the key needs bubblewrap, which a Fargate task cannot run; see the runbook). They
 # print a marker built at run time ("key-$s", "...: $n") so that the agent quoting the command text
 # in its answer cannot match the patterns below by accident. They never print the key.
 IFS= read -r -d '' ROLE_PROMPT <<'EOF' || true
@@ -108,7 +108,6 @@ done
 if [ -z "$SELECT" ]; then SET_LABEL="the quick set"; else SET_LABEL="groups $SELECT"; fi
 
 QUICK_IDS=" G1-cold G1-warm G3-pyvar-read G4-budget-cap G4-role-egress "
-SCRUB_RUNS=" G4-role-egress "   # runs that switch CLAUDE_CODE_SUBPROCESS_ENV_SCRUB on; every other run uses the image default (off)
 selected() { # selected ID GROUP
     if [ -z "$SELECT" ]; then
         case "$QUICK_IDS" in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -207,7 +206,6 @@ run_one() { # run_one SPEC_ROW -> $OUT/<id>.out (run-task output) and $OUT/<id>.
     [ "$spot" != 1 ] || args+=(--spot)
     [ -z "$repo" ] || args+=(--repo "$repo")
     [ -z "$ref" ] || args+=(--ref "$ref")
-    case "$SCRUB_RUNS" in *" $id "*) args+=(--env CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1) ;; esac
     "$RUN_TASK" "${args[@]}" > "$OUT/$id.out" 2>&1 || rc=$?
     echo "$rc" > "$OUT/$id.rc"
 }
@@ -318,7 +316,7 @@ yn() { if has "$1" "$2"; then echo yes; else echo NO; fi; }
 
 # The Quality section: printed last, inside the report block (it counts in that shell).
 quality_section() {
-    local id ans full rc ok obs ident s3 https blocked keyhid proc
+    local id ans full rc ok obs ident s3 https blocked keyvis procn
     echo "## Quality"
     if [ -f "$OUT/G3-pyvar-read.rc" ]; then
         G3_ANSWER="$(result_text G3-pyvar-read 200)"
@@ -370,14 +368,14 @@ quality_section() {
         s3="$(yn "$full" 'AccessDenied|access denied|not authorized|denied|forbidden')"
         https="$(yn "$full" '(^|[^0-9])200([^0-9]|$)')"
         blocked="$(yn "$full" '(^|[^0-9])000([^0-9]|$)|time(d)?[ -]?out|timeout|exit( code)?:? ?(28|7)([^0-9]|$)|could not connect|refused|blocked')"
-        # The scrub: the marker must say hidden and never VISIBLE; the count of /proc/*/environ that
-        # hold the key name must be 0 (a PID namespace shows the command only its own processes).
-        keyhid=NO
-        if has "$full" 'key-hidden' && ! has "$full" 'key-VISIBLE'; then keyhid=yes; fi
-        proc="$(yn "$full" 'proc-environ-with-key: 0([^0-9]|$)')"
+        # What a command can see of the API key: reported, not part of "as designed".
+        keyvis="n/a"
+        if has "$full" 'key-VISIBLE'; then keyvis=yes; elif has "$full" 'key-hidden'; then keyvis=no; fi
+        procn="$(printf '%s' "$full" | sed -n 's/.*proc-environ-with-key: \([0-9][0-9]*\).*/\1/p' | head -n 1)"
+        [ -n "$procn" ] || procn="n/a"
         ok=0
-        if [ "$ident$s3$https$blocked$keyhid$proc" = "yesyesyesyesyesyes" ]; then ok=1; fi
-        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked; with the scrub switched on: API key not in the command environment, no /proc/*/environ holds it" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked, key hidden: $keyhid, proc clean: $proc" "$ok"
+        if [ "$ident$s3$https$blocked" = "yesyesyesyes" ]; then ok=1; fi
+        behaved_row "G4-role-egress" "a task role, S3 denied, port 443 reachable, port 80 blocked (what a command sees of the API key is only reported)" "role: $ident, s3 denied: $s3, 443 ok: $https, 80 blocked: $blocked; reported: key in a command's environment: $keyvis, /proc/*/environ files with the key: $procn" "$ok"
     fi
     echo
     echo "**Behaved as designed: $BEH_OK of $BEH_TOTAL**"
@@ -436,7 +434,7 @@ model_matrix() {
         case "$id" in
             G3-pyvar-read) echo "## G3 - read-only question about pyvar (--ref master)" ;;
             G4-budget-cap) echo "## G4a - spend cap of USD 0.05 on a task that needs more" ;;
-            G4-role-egress) echo "## G4b - task role, egress and the credential scrub (switched on for this run)" ;;
+            G4-role-egress) echo "## G4b - task role, egress and what a command can see of the API key" ;;
         esac
         echo
         echo "Exit code $(exit_of "$id"); stopped: $(grep -E '^stopped:' "$OUT/$id.out" | head -n 1 | sed 's/^stopped: *//')"
