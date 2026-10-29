@@ -133,7 +133,7 @@ Done:
 
 Known limits, measured (details in `docs/runbook.md`, section 6):
 
-- A command the agent runs can read the API key from its environment. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` hides it where `bubblewrap` can create namespaces; a Fargate task does not allow that, so the image leaves the scrub off there. `scripts/run/check-scrub-local.sh` checks whether your own Docker allows it.
+- A command the agent runs can read the API key from its environment. Claude Code's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` hides it where `bubblewrap` can create namespaces; neither a Fargate task nor Docker on macOS allowed that in our runs, so the image leaves the scrub off. `scripts/run/check-scrub-local.sh` checks whether your own Docker allows it.
 - Outbound HTTPS is open to any host by default; it can be restricted to an allowlist (runbook, section 6).
 
 Not yet run: concurrency and Spot (group G5 of `first-runs.sh`).
