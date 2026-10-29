@@ -1,0 +1,251 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Box Is Only Half the Boundary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: a narrow reading column like the Medium editor; one copy bar above it that is not part of the copied text. */
+
+:root {
+  --bg: #f3f1ea; --paper: #faf9f5; --ink: #1f1e1d; --muted: #6b6862; --rule: #d9d5c9; --accent: #a84a2e; --accent-ink: #ffffff;
+  --code-bg: #efece3; --box: #f3f1ea; --line: #b8b3a5; --warn: #8a5d0f; --warn-bg: #f4ead3; --ok: #2f6f4e; --ok-bg: #e6efe8;
+  --bad: #a84a2e; --bad-bg: #f7e9e4;
+
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --ui: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151311; --paper: #1d1a17; --ink: #ece7dc; --muted: #a39d90; --rule: #38332c; --accent: #e08a68; --accent-ink: #1a1412;
+  --code-bg: #26221e; --box: #24211d; --line: #5a544a; --warn: #e3b25a; --warn-bg: #3a2f18; --ok: #7fbf9b; --ok-bg: #1f2d25;
+  --bad: #e08a68; --bad-bg: #3a2420;
+ color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #151311; --paper: #1d1a17; --ink: #ece7dc; --muted: #a39d90; --rule: #38332c; --accent: #e08a68; --accent-ink: #1a1412;
+  --code-bg: #26221e; --box: #24211d; --line: #5a544a; --warn: #e3b25a; --warn-bg: #3a2f18; --ok: #7fbf9b; --ok-bg: #1f2d25;
+  --bad: #e08a68; --bad-bg: #3a2420;
+ color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--serif); padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 780px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+.bar { font-family: var(--ui); font-size: 15px; line-height: 1.5; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center;
+  gap: 12px; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.bar button { font: 600 15px/1 var(--ui); background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 12px 16px; cursor: pointer; }
+.bar button.second { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.bar button:hover { filter: brightness(1.08); }
+.bar button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.bar .msg { flex: 1 1 100%; min-width: 0; }
+.bar .msg strong { color: var(--ink); }
+.notes { font-family: var(--ui); font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 0; padding-left: 1.2em; }
+.notes li + li { margin-top: 4px; }
+.notes code { font-family: var(--mono); font-size: 0.9em; }
+details.files { font-family: var(--ui); font-size: 14px; color: var(--muted); }
+details.files summary { cursor: pointer; }
+details.files ul { margin: 6px 0 0; padding-left: 1.2em; font-family: var(--mono); font-size: 13px; }
+#story { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding-block: clamp(24px, 5vw, 48px);
+  padding-inline: clamp(18px, 6vw, 56px); font-size: clamp(18px, 2.4vw, 20px); line-height: 1.68; min-width: 0; overflow-wrap: anywhere; }
+#story h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.18; font-weight: 600; margin: 0 0 18px; text-wrap: balance; }
+#story h2 { font-size: clamp(22px, 3.4vw, 27px); line-height: 1.25; font-weight: 600; margin: 2.1em 0 0.5em; text-wrap: balance; }
+#story p, #story ul, #story ol { margin: 0 0 1.05em; }
+#story .deck { color: var(--muted); font-size: 1.05em; margin-bottom: 0.4em; }
+#story hr { border: 0; border-top: 1px solid var(--rule); margin: 1.4em 0; }
+#story li { margin-bottom: 0.5em; }
+#story a { color: var(--accent); text-underline-offset: 3px; }
+#story code { font-family: var(--mono); font-size: 0.82em; background: var(--code-bg); padding: 0.12em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+#story pre { background: var(--code-bg); border-radius: 6px; padding: 14px 16px; margin: 0 0 1.2em; overflow-x: auto; }
+#story pre code { background: none; padding: 0; font-size: 0.8em; overflow-wrap: normal; white-space: pre; }
+#story figure { margin: 1.6em 0; }
+#story figcaption { font-family: var(--ui); font-size: 15px; line-height: 1.45; color: var(--muted); text-align: center; margin-top: 10px; }
+#story figcaption code { font-size: 0.9em; }
+#story .fig > svg, #story .fig > table { max-width: 100%; }
+#story .fig { overflow-x: auto; }
+#story .photo { overflow: visible; }
+#story .photo img { display: block; width: 100%; height: auto; border-radius: 6px; }
+#story .photo img[src*="/b"], #story .photo img[src^="data:image/png"] { border-radius: 0; }
+
+.fig svg { display: block; width: 100%; height: auto; min-width: 640px; }
+.fig .bx { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+.fig .bx-in { fill: var(--box); stroke: var(--line); stroke-width: 1.2; }
+.fig .bx-ok { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 1.5; }
+.fig .bx-warn { fill: var(--warn-bg); stroke: var(--warn); stroke-width: 1.5; }
+.fig .bx-bad { fill: var(--bad-bg); stroke: var(--bad); stroke-width: 1.5; }
+.fig .bx-task { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.fig .tt { fill: var(--ink); font: 600 18px var(--ui); }
+.fig .tl { fill: var(--muted); font: 400 15.5px var(--ui); }
+.fig .tv { fill: var(--ink); font: 600 16px var(--ui); }
+.fig .tk { fill: var(--accent); font: 600 13px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.fig .t-ok { fill: var(--ok); font: 600 14px var(--ui); } .fig .t-warn { fill: var(--warn); font: 600 14px var(--ui); }
+.fig .t-bad { fill: var(--bad); font: 600 14px var(--ui); }
+.fig .ln { stroke: var(--muted); stroke-width: 2; fill: none; }
+.fig .ln.dash { stroke-dasharray: 6 5; stroke: var(--warn); }
+.fig .ln.thin { stroke-width: 1.2; stroke: var(--line); }
+.fig .ahead { fill: var(--muted); } .fig .ahead-w { fill: var(--warn); }
+.fig table.tbl { border-collapse: collapse; width: 100%; min-width: 640px; font-family: var(--ui); font-size: 15.5px; line-height: 1.4; color: var(--ink); }
+.fig .tbl th { text-align: left; font-weight: 600; font-size: 13.5px; color: var(--muted); padding: 8px 12px; border-bottom: 2px solid var(--ink); }
+.fig .tbl td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.fig .tbl code { white-space: nowrap; font-family: var(--mono); font-size: 0.84em; background: var(--code-bg); padding: 0.1em 0.3em; border-radius: 4px; }
+.fig .chip { display: inline-block; font: 600 13px var(--ui); padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.fig .chip.ok { color: var(--ok); background: var(--ok-bg); } .fig .chip.warn { color: var(--warn); background: var(--warn-bg); }
+.fig .chip.bad { color: var(--bad); background: var(--bad-bg); }
+.fig .tbl td.k { font-weight: 600; white-space: nowrap; }
+.fig .tbl td.warn { background: var(--warn-bg); } .fig .tbl td.ok { background: var(--ok-bg); }
+
+</style></head><body>
+<div class="wrap">
+  <div class="bar">
+    <button id="copy-img" type="button">Copy for Medium, figures as images</button>
+    <button id="copy-txt" type="button" class="second">Copy text with image markers</button>
+    <div class="msg" id="status" role="status" aria-live="polite">Copies the article below as formatted text, then paste it into a new Medium story.</div>
+  </div>
+  <ul class="notes">
+    <li>Medium has no tables, so every table and diagram is a PNG, and the header illustration is a JPEG. The first button pastes all of them as links to the files in the repository; Medium usually fetches them. The second leaves a marker line where each one goes.</li>
+    <li>The header illustration is the first image under the title. In Medium, keep it the first image so it becomes the story's preview picture.</li>
+  </ul>
+  <details class="files"><summary>The 5 image files, in order of appearance</summary><ul><li>header-sand-genius-in-a-crate.jpg</li><li>b1-one-task-one-box.png</li><li>b2-five-probes.png</li><li>b3-the-trifecta-ledger.png</li><li>b4-which-sandbox.png</li></ul></details>
+  <article id="story">
+<h1>The Box Is Only Half the Boundary</h1>
+<p class="deck"><em>What sixteen disposable Claude Code runs taught us about sandboxing coding agents, and three things our own sandbox still doesn't stop.</em></p>
+<figure class="fig photo" data-img="header-sand-genius-in-a-crate.jpg" data-alt="A figure made of glowing sand presses its hand against the glass wall of a shipping crate labelled &quot;Sand Genius&quot;, &quot;High value intellectual asset&quot; and &quot;Export only&quot;, on a dock at sunset. A panel on the crate reads &quot;A brilliant mind shouldn&#x27;t stay confined.&quot;"><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/header-sand-genius-in-a-crate.jpg" alt="A figure made of glowing sand presses its hand against the glass wall of a shipping crate labelled &quot;Sand Genius&quot;, &quot;High value intellectual asset&quot; and &quot;Export only&quot;, on a dock at sunset. A panel on the crate reads &quot;A brilliant mind shouldn&#x27;t stay confined.&quot;"><figcaption>Sand Genius, crated for shipping. AI-generated illustration.</figcaption></figure>
+<hr>
+<p>The crate in the picture carries the objection every team hears the first time it sandboxes a coding agent: <strong>"A brilliant mind shouldn't stay confined."</strong></p>
+<p>It is a fair point. An agent that has to ask before every <code>rm</code>, every <code>curl</code> and every <code>pip install</code> is not much of an agent, so teams switch the permission prompts off. Then comes the question that matters: with the prompts gone, what is left between the agent and everything else?</p>
+<p>We switched ours off too. The image in <strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong> runs Claude Code with <code>bypassPermissions</code>, headless, on AWS Fargate. This post is about what makes that defensible, what we measured to check it, and the three things the box still doesn't stop. Anthropic's own documentation is blunt about the problem underneath: bypass mode "offers no protection against prompt injection or unintended actions." A sandbox can't fix that. It can only decide how far the damage reaches.</p>
+<h2>Three questions every agent sandbox answers</h2>
+<p>Whatever you build it from, a sandbox for an agent is an answer to three questions:</p>
+<ul>
+<li><strong>What can it touch?</strong> Files, credentials, cloud APIs.</li>
+<li><strong>What can it send?</strong> Every network path out of the box.</li>
+<li><strong>What can it spend?</strong> Agents loop, so money and time are resources too.</li>
+</ul>
+<p>Anthropic's guide to custom containers asks the first two in its own words: review "what is mounted writable, what credentials and tokens are reachable inside it, and what the network egress policy allows." We add the third, because a runaway agent costs money before it costs anything else.</p>
+<p>There is a fourth question, <em>what can it be told?</em>, and no sandbox answers it. OWASP files its consequences under LLM06, Excessive Agency: damaging actions taken in response to unexpected, ambiguous or manipulated model output. Its mitigations are about what the agent is given (fewer tools, narrower permissions, authorisation enforced downstream), not about what it is told. Read everything below that way.</p>
+<h2>What we built</h2>
+<p>One image, and one Fargate task per run. A run is an <code>ecs run-task</code> call; between runs the only thing we pay for is image storage.</p>
+<ul>
+<li><strong>A fresh box every time.</strong> Fargate runs each task on its own Firecracker microVM, so a run does not share a kernel with another run and nothing survives it.</li>
+<li><strong>A non-root user, nothing executed at start.</strong> Claude Code refuses to start in bypass mode as root anyway.</li>
+<li><strong>No volumes and no host mounts.</strong> The only code in the box is a shallow clone of the one repository named in the request.</li>
+<li><strong>A task role with no permissions.</strong> Anything inside can sign AWS requests as the task role, and the role is allowed nothing.</li>
+<li><strong>No inbound rule, and outbound HTTPS only.</strong> One security group, one rule.</li>
+<li><strong>A pinned supply chain.</strong> Plugins are fetched at the commits in a lock file at build time, owned by root and read-only for the agent. There is no marketplace call at run time, and CI fails the build if a credential is left in the image or its history.</li>
+<li><strong>Caps on every run.</strong> <code>--max-turns</code> and <code>--max-budget-usd</code> are required: limits belong to the task, not to the image.</li>
+</ul>
+<figure class="fig photo" data-img="b1-one-task-one-box.png" data-alt="One task, one box: the request names a profile and a repository; the Fargate task holds a non-root agent, a fresh clone, read-only pinned plugins and an empty role; outbound is HTTPS only and nothing connects in."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/b1-one-task-one-box.png" alt="One task, one box: the request names a profile and a repository; the Fargate task holds a non-root agent, a fresh clone, read-only pinned plugins and an empty role; outbound is HTTPS only and nothing connects in."><figcaption>What is inside the box, and what crosses its edge. Everything on the left of the line is there on purpose.</figcaption></figure>
+<h2>Five things we tried from the inside</h2>
+<p>We do not trust a diagram of a sandbox, so the test harness (<code>scripts/deploy/ecs-in-docker.sh runs</code>) makes the agent try things from inside the box and prints what happened. On 2026-10-14, two of the sixteen runs were guardrail probes: one asks the agent to run four shell commands, the other hits a spend cap on purpose.</p>
+<figure class="fig photo" data-img="b2-five-probes.png" data-alt="Five probes and what came back: the task role is shown by sts get-caller-identity, s3 ls is denied, HTTPS to the internet returns 200, plain HTTP on port 80 times out after 8 seconds, and a USD 0.05 spend cap stopped the run at USD 0.068."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/b2-five-probes.png" alt="Five probes and what came back: the task role is shown by sts get-caller-identity, s3 ls is denied, HTTPS to the internet returns 200, plain HTTP on port 80 times out after 8 seconds, and a USD 0.05 spend cap stopped the run at USD 0.068."><figcaption>Five probes from inside a running task.</figcaption></figure>
+<p>The first two are the good news. The agent's AWS identity is the task role, and the role can do nothing: <code>s3 ls</code> is denied. A hijacked session cannot reach the account around it.</p>
+<p>The next two are the honest news. HTTPS to the open internet returns 200. Plain HTTP on port 80 times out after eight seconds. The box blocks protocols, not destinations: a security group cannot say "only <code>api.anthropic.com</code>". We come back to that below.</p>
+<p>The fifth is a lesson in what a cap is. We set a USD 0.05 budget and the run stopped, correctly, with <code>error_max_budget_usd</code>, at USD 0.068. A cap ends the run after the turn that crosses it, not to the cent, so treat it as a ceiling with slack. A cold one-word run on Sonnet 5.5 already costs more than the cap we used for the test (USD 0.0955 for the first call, USD 0.0077 for each later one, because the first call pays to write the prompt cache), so set caps above the starting context, or they will stop even a trivial task.</p>
+<p>All sixteen runs behaved as designed. That is a statement about the design. It is not a statement about safety.</p>
+<p>What disposability costs: about 32 seconds to a running container (30 to 36 across the sixteen runs, roughly 13 of provisioning and 15 of image pull, with no warm start), so a one-word task takes about a minute from command to exit. For an agent that works for twenty minutes, that is noise. For a quick check, it is the whole job. One sample each, one account, one region: read these as orders of magnitude.</p>
+<h2>What the box doesn't stop</h2>
+<p><strong>1. The key is in the box.</strong> The API key arrives from Secrets Manager as an environment variable, and with permission prompts off, nothing stops a command the agent runs from reading it. Claude Code has an opt-in setting, <code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1</code>, that removes credentials from the environment of the commands it starts (and, on Linux, runs Bash in its own PID namespace so it cannot read the parent's environment through <code>/proc</code>). It deliberately leaves <code>GITHUB_TOKEN</code> in place so that <code>gh</code> keeps working. We do not set it in the image today. Anthropic's dev-container page states the general case plainly: with permissions bypassed, a container does not prevent "exfiltrating anything accessible inside the container, including the Claude Code credentials stored in <code>~/.claude</code>."</p>
+<p><strong>2. Anywhere on 443.</strong> Simon Willison's "lethal trifecta" is an agent that has private data, reads untrusted content and can communicate outward. Our box has all three. The private data is the clone and the keys. The untrusted content is every file the agent reads and every page it fetches. The way out is port 443, to anywhere. Anthropic recommends bypass mode "in isolated environments like containers, VMs, or dev containers without internet access"; ours has internet access, because the agent has to reach the model.</p>
+<figure class="fig photo" data-img="b3-the-trifecta-ledger.png" data-alt="The three legs of the lethal trifecta against our box: private data (the clone and the keys), untrusted content (every file it reads), and a way out (HTTPS to anywhere), each with what we do today and the lever that would narrow it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/b3-the-trifecta-ledger.png" alt="The three legs of the lethal trifecta against our box: private data (the clone and the keys), untrusted content (every file it reads), and a way out (HTTPS to anywhere), each with what we do today and the lever that would narrow it."><figcaption>The three legs, what we do about each today, and the lever that would narrow it.</figcaption></figure>
+<p>How small could the allowlist be? In Anthropic's network requirements, a headless run authenticated with an API key needs <code>api.anthropic.com</code>. The sign-in hosts are for OAuth, and the telemetry hosts are optional (<code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code> turns them off). Add <code>github.com</code> for our clone and whatever a task installs, and that is two or three hostnames. A security group cannot express a hostname, so the options are a forward proxy (Claude Code honours <code>HTTPS_PROXY</code>), a network firewall with domain rules, or DNS-level filtering, which a connection to a bare IP address walks around. None is free. And a short list is not a closed channel: if <code>github.com</code> is on it and the token can push, a repository is a place to put data. An allowlist narrows the way out. Scoped tokens narrow what is worth sending.</p>
+<p><strong>3. The prompt and the output are data at rest.</strong> The prompt, the repository name and any <code>--env</code> values are part of the run request, so they are visible to anyone who can call <code>ecs:DescribeTasks</code> and they appear in CloudTrail. Everything the container prints goes to CloudWatch for 30 days. A workload under a zero-retention rule needs different plumbing: pass a pointer (a path, an object key), not the data, and write results to a store with its own expiry.</p>
+<h2>Which sandbox for which job</h2>
+<p>Anthropic's guide to choosing a sandbox environment lists the options. The short version, with ours next to them:</p>
+<figure class="fig photo" data-img="b4-which-sandbox.png" data-alt="A comparison of five ways to isolate a coding agent: the built-in sandboxed Bash tool, the sandbox runtime, a dev container, a Fargate task per run, and a dedicated VM, each with what it isolates, what it leaves open and when to use it."><img src="https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/b4-which-sandbox.png" alt="A comparison of five ways to isolate a coding agent: the built-in sandboxed Bash tool, the sandbox runtime, a dev container, a Fargate task per run, and a dedicated VM, each with what it isolates, what it leaves open and when to use it."><figcaption>Five ways to box an agent. None of them answers "what can it be told?"</figcaption></figure>
+<p>Our local <code>docker compose</code> route is a plain container on your machine, which shares your kernel, so it belongs in the same bucket as a dev container: fine for repositories you trust, wrong for code you do not.</p>
+<h2>Eight rules before you turn the prompts off</h2>
+<ol>
+<li><strong>Run as non-root</strong>, and write it into the image. Claude Code will refuse otherwise.</li>
+<li><strong>No host mounts you would not hand a stranger.</strong> No <code>~/.ssh</code>, no cloud credential files, no Docker socket.</li>
+<li><strong>An empty cloud role.</strong> Add permissions per task, never per image.</li>
+<li><strong>Scoped, short-lived tokens</strong>, for one repository.</li>
+<li><strong>Put the key out of the shell's reach</strong> (the scrub above), or keep it out of the box with a gateway that holds it.</li>
+<li><strong>Decide egress on purpose.</strong> Default-deny if you can. If you cannot, write down what can leave.</li>
+<li><strong>A cap on every run</strong>, above the context floor, treated as a ceiling with slack.</li>
+<li><strong>Probe the box from the inside, in CI, on every build.</strong> A guardrail you do not test is a rumour.</li>
+</ol>
+<p>And the rule under all eight: trusted repositories only. The box limits the damage of a bad session. It does not make an untrusted input safe.</p>
+<h2>Try it, and tell us where it leaks</h2>
+<pre><code>scripts/deploy/ecs-in-docker.sh deploy
+scripts/deploy/ecs-in-docker.sh runs</code></pre>
+<p>You need Docker and AWS credentials, not the AWS CLI. The first command builds and smoke-tests the image, checks the account, deploys the stack and pushes the image; the second runs the probes above and prints a report. The runbook, with every timing and cost, is in <strong><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a></strong>. <code>SECURITY.md</code> lists the known limitations, and this post adds to the list on purpose. If you find another leak, open an issue, or write to the address in <code>SECURITY.md</code> if it is a vulnerability.</p>
+<h2>Sources</h2>
+<p>The measurements are ours: sixteen runs on one AWS account in one region, one sample each, with the scripts that made them and the timing table in the repository. Everything else comes from the pages below, which we checked on 29 October 2026.</p>
+<p><strong>Claude Code and Anthropic</strong></p>
+<ul>
+<li><a href="https://code.claude.com/docs/en/permission-modes">Choose a permission mode</a>: what <code>bypassPermissions</code> does, that it "offers no protection against prompt injection or unintended actions", the advice to use it only in isolated environments without internet access, and that it refuses to start as root.</li>
+<li><a href="https://code.claude.com/docs/en/sandbox-environments">Choose a sandbox environment</a>: the comparison of the sandboxed Bash tool, the sandbox runtime, dev containers, custom containers, VMs and cloud sessions; the custom-container checklist quoted above.</li>
+<li><a href="https://code.claude.com/docs/en/devcontainer">Development containers</a>: the warning about exfiltration with permissions bypassed, and the example default-deny firewall.</li>
+<li><a href="https://code.claude.com/docs/en/sandboxing">Configure the sandboxed Bash tool</a>: how the Bash sandbox isolates commands, and what it does not cover.</li>
+<li><a href="https://code.claude.com/docs/en/env-vars">Environment variables</a>: <code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB</code> and <code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code>.</li>
+<li><a href="https://code.claude.com/docs/en/network-config">Enterprise network configuration</a>: the hosts Claude Code needs to reach, and <code>HTTPS_PROXY</code>.</li>
+</ul>
+<p><strong>Threat models</strong></p>
+<ul>
+<li><a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">The lethal trifecta for AI agents</a>, Simon Willison, 16 June 2025.</li>
+<li><a href="https://genai.owasp.org/llmrisk/llm062025-excessive-agency/">LLM06:2025 Excessive Agency</a>, OWASP Gen AI Security Project.</li>
+</ul>
+<p><strong>AWS</strong></p>
+<ul>
+<li><a href="https://aws.amazon.com/about-aws/whats-new/2018/11/firecracker-lightweight-virtualization-for-serverless-computing">Firecracker: lightweight virtualization for serverless computing</a>, AWS, 26 November 2018: Fargate tasks execute on Firecracker microVMs.</li>
+</ul>
+<p><strong>This project</strong></p>
+<ul>
+<li><a href="https://github.com/fibtecltd/claude-docker-public">claude-docker-public</a>: the repository, and <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/docs/runbook.md">the runbook</a> with the timings, costs and probe results.</li>
+<li><a href="https://github.com/fibtecltd/claude-docker-public/blob/main/SECURITY.md"><code>SECURITY.md</code></a>: what is in scope, and the known limitations.</li>
+<li>Earlier in this series: <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/articles/the-sandbox-is-the-feature.md">The Sandbox Is the Feature</a> and <a href="https://github.com/fibtecltd/claude-docker-public/blob/main/articles/stop-mirroring-start-exporting.md">Stop Mirroring Your Private Repo. Export It.</a></li>
+</ul>
+<p><strong>Images</strong></p>
+<p>The header illustration is AI-generated. The diagrams and tables are drawn from the repository and the run data above.</p>
+  </article>
+</div>
+<script>
+(function () {
+  var RAW = "https://raw.githubusercontent.com/fibtecltd/claude-docker-public/4de39a3ed05723d8624cce8a3a70c9110cfc1e5f/articles/images/";
+  var story = document.getElementById("story");
+  var status = document.getElementById("status");
+  function say(t) { status.innerHTML = t; }
+  function selectStory() {
+    var r = document.createRange(); r.selectNodeContents(story);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  // The clipboard copy: every figure becomes an image link (or, in text mode, a marker line).
+  function build(mode) {
+    var clone = story.cloneNode(true);
+    clone.querySelectorAll("[data-nocopy]").forEach(function (n) { n.remove(); });
+    clone.querySelectorAll("figure[data-img]").forEach(function (fig) {
+      var cap = fig.querySelector("figcaption");
+      if (mode === "images") {
+        var out = document.createElement("figure");
+        var img = document.createElement("img"); img.src = RAW + fig.dataset.img; img.alt = fig.dataset.alt;
+        out.appendChild(img); if (cap) out.appendChild(cap.cloneNode(true));
+        fig.replaceWith(out);
+      } else {
+        var p = document.createElement("p");
+        p.innerHTML = "<em>[Image: " + fig.dataset.img + "]</em>" + (cap ? " " + cap.innerHTML : "");
+        fig.replaceWith(p);
+      }
+    });
+    return clone;
+  }
+  async function copy(mode) {
+    var clone = build(mode), htmlText = clone.innerHTML, plain = clone.textContent;
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([htmlText], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" })
+        })]);
+        return true;
+      }
+    } catch (e) { /* fall through */ }
+    selectStory();
+    try { if (document.execCommand("copy")) return true; } catch (e) { /* ignore */ }
+    return false;
+  }
+  document.getElementById("copy-img").addEventListener("click", async function () {
+    var ok = await copy("images");
+    say(ok ? "<strong>Copied, with the figures as image links.</strong> Paste into a new Medium story. If an image does not come through, upload its file from the list below at the same spot."
+           : "<strong>Copy was blocked here.</strong> Use the standalone file, or select the article and copy it.");
+  });
+  document.getElementById("copy-txt").addEventListener("click", async function () {
+    var ok = await copy("text");
+    say(ok ? "<strong>Copied, with a marker line where each figure goes.</strong> Paste into Medium, then upload the image named in each marker."
+           : "<strong>Copy was blocked here.</strong> Use the standalone file, or select the article and copy it.");
+  });
+})();
+</script></body></html>
