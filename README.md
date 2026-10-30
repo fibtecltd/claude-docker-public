@@ -119,6 +119,8 @@ GitHub Actions (`.github/workflows/build-ecs.yml`) builds both targets and runs 
 | `scripts/run/run-task.sh` | starts one headless task on ECS, waits, prints logs, exit code and timings (see `docs/runbook.md`) |
 | `scripts/run/first-runs.sh` | the first runs against a deployed stack (timings, cost, guardrails) with a report |
 | `scripts/run/check-scrub-local.sh` | checks, with `docker compose`, whether Claude Code's credential scrub can run in your Docker (writes a report) |
+| `scripts/run/check-scrub-fargate.sh` | the same check in a Fargate task (three tasks, at most USD 1.00; `--push-image` first puts the current image in ECR), through `ecs-in-docker.sh`; writes a report |
+| `scripts/run/scrub-verdict.sh` | the scrub probe and the reading of its answers, shared by the two checks above |
 | `scripts/deploy/` | `ecs-in-docker.sh` (deploy and run with only Docker on the machine) and `ecs-deploy.sh` (the guarded stack deploy) |
 | `docs/runbook.md` | setup, recipes, data handling and troubleshooting for running tasks on ECS |
 | `infra/` | CDK app: ECR repository, cluster, network and one task definition per profile (see `infra/README.md`) |
