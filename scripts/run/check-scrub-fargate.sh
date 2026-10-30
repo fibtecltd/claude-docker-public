@@ -143,7 +143,7 @@ first_match() { grep -m1 -o -E "$1" "$2" || true; } # the first match of an exte
 # What the BWRAP task showed: BW_USER, BW_FRESH, BW_EXISTING (an exit code or n/a), BW_ERR (1 if a bwrap: error
 # line was reported, whatever the agent did with the exit codes), BW_SOCAT (yes/no/n/a).
 bwrap_line() { # bwrap_line LABEL TEXT
-    local f="$TMP/$1.out" ver err so
+    local f="$TMP/$1.out" ver err so bt
     BW_USER="n/a" BW_FRESH="n/a" BW_EXISTING="n/a" BW_ERR=0 BW_SOCAT="n/a"
     if ! finished "$1"; then unfinished_line "$1" "$2"; return 0; fi
     ver="$(first_match 'bubblewrap [0-9][0-9.]*' "$f")"
@@ -151,7 +151,9 @@ bwrap_line() { # bwrap_line LABEL TEXT
     BW_FRESH="$(first_match 'fresh-proc exit=[0-9]+' "$f")"; BW_FRESH="${BW_FRESH#*=}"; [ -n "$BW_FRESH" ] || BW_FRESH="n/a"
     BW_EXISTING="$(first_match 'existing-proc exit=[0-9]+' "$f")"; BW_EXISTING="${BW_EXISTING#*=}"; [ -n "$BW_EXISTING" ] || BW_EXISTING="n/a"
     err="$(grep -m1 'bwrap:' "$f" || true)"
-    case "$err" in *bwrap:*) err="bwrap:${err#*bwrap:}" ;; *) err="" ;; esac
+    # The message ends at the closing backtick the agent put around it; what follows is its own commentary.
+    bt=$'\x60' # a backtick, kept in a variable so the pattern below needs no quoting tricks (bash 3.2)
+    case "$err" in *bwrap:*) err="bwrap:${err#*bwrap:}"; err="${err%%"$bt"*}" ;; *) err="" ;; esac
     # shellcheck disable=SC2016  # the backticks are characters for sed to strip, not a command substitution
     err="$(printf '%s' "$err" | sed 's/[`[:space:]]*$//; s/`\.$//' | cut -c1-240)"
     [ -z "$err" ] || BW_ERR=1

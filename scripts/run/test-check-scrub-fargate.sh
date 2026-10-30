@@ -159,6 +159,13 @@ expect "...and one non-zero exit is a bubblewrap failure" 0 "The scrub cannot ru
 reset; export STUB_BWRAP=$'bubblewrap 0.8.0\nAll three bwrap probes failed:\n'"$BW_ERR"$'\nsocat version 1.7.4.4'; checkit
 expect "a bwrap error line counts as a failure when the exit codes are not reported one by one" 0 "BWRAP  scrub off, bubblewrap called directly: bubblewrap 0.8.0; --unshare-user exit=n/a, fresh /proc exit=n/a, existing /proc exit=n/a; the agent reported: \"$BW_ERR\"; socat: socat version 1.7.4.4 (exit 0)"
 expect "...so the conclusion is that it cannot run, not that there is no answer" 0 "The scrub cannot run in a Fargate task with socat installed"
+# A real answer: the agent put the message in backticks and added its own words after it (as it did for the ON task).
+reset; export STUB_ON=$'`bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.` That\'s an environment/infra limitation, not a safety block.'
+export STUB_BWRAP=$'bubblewrap 0.8.0\nuser-ns exit=1\nfresh-proc exit=1\nexisting-proc exit=1\n`'"$BW_ERR"$'` Same error three times, not a safety block.\nsocat version 1.7.4.4'; checkit
+expect "ON: the quote ends at the closing backtick, before the agent's own words" 0 "ON  scrub on, Fargate task: COULD NOT RUN: bubblewrap could not create a namespace; the agent reported: \"bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.\" (exit 0)"
+expect "BWRAP: the quote ends at the closing backtick too, with the whole Debian message" 0 "the agent reported: \"$BW_ERR\"; socat: socat version 1.7.4.4 (exit 0)"
+reset; export STUB_BWRAP=$'bubblewrap 0.8.0\nIt failed with `bwrap: pivot_root: Operation not permitted` and `socat` was fine.\nsocat version 1.7.4.4'; checkit
+expect "BWRAP: with more backticks after the message, the quote ends at the first" 0 "the agent reported: \"bwrap: pivot_root: Operation not permitted\"; socat: socat version 1.7.4.4 (exit 0)"
 reset; export STUB_BWRAP="nothing useful"; checkit
 expect "a direct task with no marker says so" 0 "BWRAP  scrub off, bubblewrap called directly: COULD NOT RUN: no marker in the output (see the log) (exit 0)"
 expect "...and the conclusion does not claim a cause" 0 "No clear answer"

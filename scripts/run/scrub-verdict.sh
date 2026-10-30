@@ -34,7 +34,7 @@ EOF
 # FORMS: how the two ${}/loop commands fared (ran, only one ran, refused, gave no output); set only
 # when a plain command ran. NOTE: why nothing ran, or why the key check gave no answer.
 classify() {
-    local f="$TMP/$1.out" p_key="n/a" p_proc c_key="n/a" c_proc seen=0
+    local f="$TMP/$1.out" p_key="n/a" p_proc c_key="n/a" c_proc seen=0 bt
     KEYVIS="n/a" PROCN="n/a" PLAIN="no" FORMS="n/a" NOTE="" REASON=""
     if grep -q 'plain-key=VISIBLE' "$f"; then p_key=yes; elif grep -q 'plain-key=hidden' "$f"; then p_key=no; fi
     p_proc="$(sed -n 's/.*plain-proc=\([0-9][0-9]*\).*/\1/p' "$f" | head -n 1)"
@@ -65,10 +65,12 @@ classify() {
         else
             NOTE="no marker in the output (see the log)"
         fi
-        # The agent's words for why: the first line that says so, from "bwrap:" on if it has one, without list
+        # The agent's words for why: the first line that says so, from "bwrap:" to the next backtick if it has one, without list
         # numbers, backticks or the agent's own markdown around the message; cut at 240 characters.
         REASON="$(grep -m1 -i 'Sandbox is required\|bwrap:\|requires approval\|can.t be checked' "$f")" || REASON=""
-        case "$REASON" in *bwrap:*) REASON="bwrap:${REASON#*bwrap:}" ;; esac
+        # A bwrap message ends at the closing backtick the agent put around it; what follows is the agent's own commentary.
+        bt=$'\x60' # a backtick, kept in a variable so the pattern below needs no quoting tricks (bash 3.2)
+        case "$REASON" in *bwrap:*) REASON="bwrap:${REASON#*bwrap:}"; REASON="${REASON%%"$bt"*}" ;; esac
         # shellcheck disable=SC2016  # the backticks are characters for sed to strip, not a command substitution
         REASON="$(printf '%s' "$REASON" \
             | sed 's/^[[:space:]]*[0-9]*[.)]*[[:space:]]*//; s/^[`[:space:]]*//; s/[`[:space:]]*$//; s/`\.$//' | cut -c1-240)"

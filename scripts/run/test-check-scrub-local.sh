@@ -137,6 +137,13 @@ expect "the quote starts at bwrap: and drops the agent's markdown" 0 "A  scrub o
 expect "a bwrap error that is not the namespace error is not called one" 0 "B  scrub on, --cap-add SYS_ADMIN: COULD NOT RUN: bubblewrap failed; the agent reported: \"bwrap: pivot_root: Operation not permitted\" (exit 0)"
 reset; export STUB_A=$'bwrap: first error\nlater bwrap: second error'; checkit
 expect "with bwrap: on two lines, the first line is quoted" 0 "the agent reported: \"bwrap: first error\""
+# A real answer on Fargate: the agent put the message in backticks and added its own words after it.
+reset; export STUB_A=$'`bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.` That\'s an environment/infra limitation, not a safety block.'; checkit
+expect "the quote ends at the closing backtick, before the agent's own words" 0 "A  scrub on, default flags: COULD NOT RUN: bubblewrap could not create a namespace; the agent reported: \"bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces.\" (exit 0)"
+reset; export STUB_A=$'1. `printf \'plain-%s\\n\' ok` failed with `bwrap: pivot_root: Operation not permitted`. Nothing ran.'; checkit
+expect "...also when the agent adds a full stop and more words after the closing backtick" 0 "the agent reported: \"bwrap: pivot_root: Operation not permitted\" (exit 0)"
+reset; export STUB_A=$'It failed with `bwrap: pivot_root: Operation not permitted` and `socat` was fine.'; checkit
+expect "with more backticks after the message, the quote ends at the first" 0 "the agent reported: \"bwrap: pivot_root: Operation not permitted\" (exit 0)"
 reset; export STUB_A="it failed: bwrap: one error, then bwrap: two"; checkit
 expect "with bwrap: twice on a line, the quote starts at the first" 0 "the agent reported: \"bwrap: one error, then bwrap: two\""
 reset; checkit
