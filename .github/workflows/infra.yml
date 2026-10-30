@@ -81,6 +81,7 @@ jobs:
           scripts/run/test-first-runs.sh
           scripts/run/test-run-task.sh
           scripts/run/test-check-scrub-local.sh
+          scripts/run/test-check-scrub-fargate.sh
 
       - name: run-task.sh builds a valid request (no AWS calls)
         env:

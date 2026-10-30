@@ -11,8 +11,8 @@ BIN="$WORK/bin"
 mkdir -p "$REPO/scripts/run" "$BIN"
 export WORK
 
-# The script works out its repository from its own location, so test a copy in a scratch tree.
-cp "$SCRIPT_DIR/check-scrub-local.sh" "$REPO/scripts/run/"
+# The script works out its repository from its own location, so test a copy (with the library it sources) in a scratch tree.
+cp "$SCRIPT_DIR/check-scrub-local.sh" "$SCRIPT_DIR/scrub-verdict.sh" "$REPO/scripts/run/"
 CHECK="$REPO/scripts/run/check-scrub-local.sh"
 
 # What the probe's five commands print. The plain ones print plain-ok / plain-key=… / plain-proc=N, the
@@ -126,7 +126,7 @@ expect "a sandbox that cannot start counts as every command blocked, whatever el
 LONG="Sandbox is required: $(printf '%0300d' 0 | tr 0 x)"
 reset; export STUB_A="$LONG"; checkit
 # The run's own output is echoed on screen in full; the verdict line is the one that starts with the variant.
-check "a reason longer than 200 characters is cut in the verdict line" test -z "$(printf '%s' "$OUT" | grep '^A  scrub on' | grep 'x\{201\}' || true)"
+check "a reason longer than 240 characters is cut in the verdict line" test -z "$(printf '%s' "$OUT" | grep '^A  scrub on' | grep 'x\{220\}' || true)"
 check "...but it is not cut shorter than that" test -n "$(printf '%s' "$OUT" | grep '^A  scrub on' | grep 'x\{150\}' || true)"
 reset; checkit
 # The two lines the agent wrote on Docker for macOS (2026-10-29, socat installed): its own markdown around the bwrap message.
