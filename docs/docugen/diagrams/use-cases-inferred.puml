@@ -1,0 +1,36 @@
+@startuml
+title Use cases (inferred from scripts, README.md and docs/runbook.md)
+left to right direction
+
+actor "Operator" as operator
+actor "Contributor" as contributor
+actor "GitHub Actions" as ci
+
+rectangle "claude-ecs repository" {
+  usecase "Run a headless task on ECS Fargate\n(run-task.sh)" as UC1
+  usecase "Run locally with docker compose\n(claude-ecs-base)" as UC2
+  usecase "Build the ecs-base and ecs-deploy images" as UC3
+  usecase "Smoke-test an image\n(smoke-ecs.sh)" as UC4
+  usecase "Deploy the claude-ecs stack\n(ecs-deploy.sh, ecs-in-docker.sh)" as UC5
+  usecase "Run the first runs and read the report\n(first-runs.sh)" as UC6
+  usecase "Check whether the credential scrub can run\n(check-scrub-local.sh, check-scrub-fargate.sh)" as UC7
+  usecase "Add or edit a profile\n(profiles/NAME.plugins)" as UC8
+  usecase "Bump a plugin pin\n(bump-plugin.sh, plugins.lock)" as UC9
+  usecase "Test and synthesize the CDK app\n(infra/tests, cfn-lint)" as UC10
+}
+
+operator --> UC1
+operator --> UC2
+operator --> UC5
+operator --> UC6
+operator --> UC7
+contributor --> UC8
+contributor --> UC9
+contributor --> UC3
+ci --> UC3
+ci --> UC4
+ci --> UC10
+UC5 ..> UC3 : <<include>>
+UC5 ..> UC4 : <<include>>
+UC6 ..> UC1 : <<include>>
+@enduml

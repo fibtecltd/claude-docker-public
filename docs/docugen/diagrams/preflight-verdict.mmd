@@ -1,0 +1,18 @@
+stateDiagram-v2
+    state "NO-GO" as NO_GO
+    [*] --> cmd_preflight : cmd_stack
+    cmd_preflight --> NO_GO : a check printed NO-GO, returns 1
+    cmd_preflight --> UNKNOWN : no NO-GO, a check printed UNKNOWN, returns 2
+    cmd_preflight --> GO : every check printed GO, returns 0
+
+    GO --> cdk_diff
+    UNKNOWN --> cdk_diff : ALLOW_UNKNOWN=1
+    UNKNOWN --> not_deploying : ALLOW_UNKNOWN is not 1
+    NO_GO --> not_deploying
+
+    cdk_diff --> not_deploying : nothing to create, or [~] or [-] items, or another stack or CDKToolkit
+    cdk_diff --> confirm : only [+] items in stack claude-ecs
+    confirm --> cdk_deploy : typed account id matches, or ASSUME_YES=1 with EXPECTED_ACCOUNT
+    confirm --> not_deploying : not confirmed
+    cdk_deploy --> [*]
+    not_deploying --> [*]

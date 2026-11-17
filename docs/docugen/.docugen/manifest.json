@@ -1,0 +1,2422 @@
+{
+ "documents": [
+  {
+   "kind": "markdown",
+   "path": "docs/README.md",
+   "sha256": "d736d536a91512ec65635a3611b8b09eaf87d21cecfd784e5ce2aafe0c0a7e8e",
+   "sources": [
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    }
+   ]
+  },
+  {
+   "kind": "markdown",
+   "path": "docs/api-reference.md",
+   "sha256": "5751e24178ddd7126a81a0da5bd75a8d4ce12ac7453217f1d00e4340c9056e5f",
+   "sources": [
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "markdown",
+   "path": "docs/architecture.md",
+   "sha256": "f89cb7c95c5bb33831acac6820a67e74169fbb759a97b367cf319543b5731962",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/architecture-components.puml",
+   "sha256": "2bb04f1ff89a5e3b67fcf67352c8b9171d04d756828388dbd32ff608acabdebe",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/architecture-components.svg",
+   "sha256": "7c807abd4eb9c4cc28b79901369dcb66855e61762593157fa948191441ac26cc",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/aws-deployment.puml",
+   "sha256": "b271436066d3d5fdba671cb67190177ecac1f118ca6eea7eb7d52d949b256e15",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/aws-deployment.svg",
+   "sha256": "327d7a373a881c1b9f9af953a9fe0d7779e5508ef29b41317a5b9a0d797cb1a2",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/deploy-stack-status.mmd",
+   "sha256": "c47bef0d9771f7d02c834116d42abcf02810a02f931968e300e897568f936234",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/deploy-stack-status.svg",
+   "sha256": "6b7c3bf8ce571116daf5eb613f6da8d45636d5b46c39cfcda311fafd2a8f6120",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/ecs-claude-startup.puml",
+   "sha256": "12721f10dc8fbda716879b40d4cf90dd3fa98fd22dd99416ffcabd8d2c763843",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/ecs-claude-startup.svg",
+   "sha256": "89191fafbb5e93e324cea7e81c26935586e501f51eb6ef85d7aa2934c459006f",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/image-build-flow.mmd",
+   "sha256": "a409ba951929c1416b4fcfcf6659090e7666f232b9b317e12dfdf69d18c31cf1",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/image-build-flow.svg",
+   "sha256": "3b3e9716237814e1a2b741c08dca0998a7f5a9b6cf0a24bcf0b95c46d81213a9",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/infra-classes.mmd",
+   "sha256": "483fd815e2179ed66469914b12821dbb48e14a55f1705294bd8ace900300b8b0",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/infra-classes.svg",
+   "sha256": "7f1ae397a7d45a6f03ba15c39c2b7ac18308f6f2a74cd951c6867579b6712e1d",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/preflight-verdict.mmd",
+   "sha256": "41a34b4947f98e6051a6bc8cad2cb309cf814fbbe0672ba0b696c4118312b070",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/preflight-verdict.svg",
+   "sha256": "b38b2add4ec08acd8115de40e6f13f4abd6ac681206b7db7d542551bd2e4d8ce",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/run-task-sequence.mmd",
+   "sha256": "b0fb1dd6515ffb6ab025bf2b2dcb3b2a8680a9e21762d61495b407210fe69494",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/run-task-sequence.svg",
+   "sha256": "83d924722f6a467a821d2bbfdfab470e099ca15ae9300c298a0a212b095eddc6",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-source",
+   "path": "docs/diagrams/use-cases-inferred.puml",
+   "sha256": "c566fc8b7b34002879feee5bec531af36fbd81d15210ba39bb03c70c2438f871",
+   "sources": [
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    }
+   ]
+  },
+  {
+   "kind": "diagram-svg",
+   "path": "docs/diagrams/use-cases-inferred.svg",
+   "sha256": "b596e54296db55567f996321b9cc6b0d338a7eb881663f7d644b0c78ecec18ed",
+   "sources": [
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    }
+   ]
+  },
+  {
+   "kind": "markdown",
+   "path": "docs/onboarding.md",
+   "sha256": "818ab6737e847b4ac793283f5049d68c1d41137d61eaf39bdfafb706414bff33",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".env.example",
+     "sha256": "bc34049dfeefbcdc44dd88ccf5e54ea07f1b9852b9b87283686864e34ea22112"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": ".gitignore",
+     "sha256": "e802b129f20808e8ef07f82712fbac973d659953d30836ab10e508db14b75a73"
+    },
+    {
+     "path": "CONTRIBUTING.md",
+     "sha256": "40883cf53cba4efb1a8ff8aa7b195c969353745549f95eaff7396738142747f3"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/requirements-dev.txt",
+     "sha256": "fdeb7a53780058c26297a53e54d8c75abcb359494f5e6ad7ed073174ff824a70"
+    },
+    {
+     "path": "infra/requirements.txt",
+     "sha256": "23b2f83408dfb3bf067a04418bdab6707f4132fff2b9474c68a862a677f7f736"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  },
+  {
+   "kind": "pdf",
+   "path": "docs/pdf/documentation.pdf",
+   "sha256": "da61d6b798f690e538fcbf558640264242e3c3c363f07f464d361024c2985cb7",
+   "sources": [
+    {
+     "path": ".dockerignore",
+     "sha256": "2e40d424ecd2398e5f68a44fafa359d813def7875ba4249eaf80802930510480"
+    },
+    {
+     "path": ".env.example",
+     "sha256": "bc34049dfeefbcdc44dd88ccf5e54ea07f1b9852b9b87283686864e34ea22112"
+    },
+    {
+     "path": ".github/workflows/build-ecs.yml",
+     "sha256": "ac021b63e78b9ad253e8f3f4187e40271badd0cda27020c64e396169d310d5ab"
+    },
+    {
+     "path": ".github/workflows/infra.yml",
+     "sha256": "31e6f38f1c916c247278112f0a855952b7ddc4301326d8789977211a87838973"
+    },
+    {
+     "path": ".gitignore",
+     "sha256": "e802b129f20808e8ef07f82712fbac973d659953d30836ab10e508db14b75a73"
+    },
+    {
+     "path": "CONTRIBUTING.md",
+     "sha256": "40883cf53cba4efb1a8ff8aa7b195c969353745549f95eaff7396738142747f3"
+    },
+    {
+     "path": "Dockerfile",
+     "sha256": "e71e3040a2a7e28b9e48f2daddffda358549cefbefe4350ab61b3649a3742517"
+    },
+    {
+     "path": "README.md",
+     "sha256": "2329ab97a07831efba2af0f31a2b65f82b26138dd77365c32f53b11afa41e5ca"
+    },
+    {
+     "path": "SECURITY.md",
+     "sha256": "6680d21f386c82847ad723a52a8ec5e9e6db1b1df9c53985c438ca9ad539f835"
+    },
+    {
+     "path": "claude-config/settings.json",
+     "sha256": "07e2cb5b0a957ec55e0575974d0e5b5560907e1680ecc5ff52e7867ce2475835"
+    },
+    {
+     "path": "docker-compose.yml",
+     "sha256": "1bf3eced2f643c1e7c139906b7b5752073c9ec4b9969a8cb6137590226facbee"
+    },
+    {
+     "path": "docs/runbook.md",
+     "sha256": "6162e801a16a4ee721409b387d4785f7efc246e320d5e61bb9ece9d8c6e9d951"
+    },
+    {
+     "path": "infra/README.md",
+     "sha256": "07d5461d2758d3dcb7a2588f7de79114943c7d4996180c89ed9dd2bc1b383200"
+    },
+    {
+     "path": "infra/app.py",
+     "sha256": "2244d654f0d5a593fb84f2883b6465bea6b402739df50522649ca3dae8f07f8d"
+    },
+    {
+     "path": "infra/requirements-dev.txt",
+     "sha256": "fdeb7a53780058c26297a53e54d8c75abcb359494f5e6ad7ed073174ff824a70"
+    },
+    {
+     "path": "infra/requirements.txt",
+     "sha256": "23b2f83408dfb3bf067a04418bdab6707f4132fff2b9474c68a862a677f7f736"
+    },
+    {
+     "path": "infra/stacks/claude_ecs_stack.py",
+     "sha256": "0fd9440078f33e33c23dc92a45ec80047745d1f86214422044c67a3a5a90c526"
+    },
+    {
+     "path": "infra/tests/test_claude_ecs_stack.py",
+     "sha256": "d45fa68bbe117be79a83de8f640ac706cfd325ccadca89be1bf6329ca9abc862"
+    },
+    {
+     "path": "plugins.lock",
+     "sha256": "f82b4efcef721fa453efd8642c0370cd07e05cff726cf576cb865ab94995c582"
+    },
+    {
+     "path": "profiles/core.plugins",
+     "sha256": "cc62ae0970e7a68c4b819a30ca56b5238e9772fada12742d03f83533e9c9ea2b"
+    },
+    {
+     "path": "profiles/pyvar.plugins",
+     "sha256": "b49e78d81dea83726ff358af7ceee6e5ae30aad63a91878a863de4a7d3b8ff70"
+    },
+    {
+     "path": "scripts/build/bump-plugin.sh",
+     "sha256": "284b6eed0d121d793fcd9724154a4661e187aa311d8f13fc3ab39ca409154536"
+    },
+    {
+     "path": "scripts/build/fetch-plugins.sh",
+     "sha256": "128eee08459d2bbc2fd3f2a4cd4c6eeb1558ef0c451dfa753cbd6f250ed12a05"
+    },
+    {
+     "path": "scripts/ci/smoke-ecs.sh",
+     "sha256": "c7c76abea8cdd1352c32694b667677975bf396102ea5d91eb4fc8d288e0ee812"
+    },
+    {
+     "path": "scripts/deploy/ecs-deploy.sh",
+     "sha256": "cc1414be04e977861cfcdfd2244639cf339dfe0dba7ad6053a718cd4564e174f"
+    },
+    {
+     "path": "scripts/deploy/ecs-in-docker.sh",
+     "sha256": "68b4ed4e9414b864f58a5dc455aea8bd31fd93865b9222639184ee7a8b3863c6"
+    },
+    {
+     "path": "scripts/run/check-scrub-fargate.sh",
+     "sha256": "e9a918409e450439b16a2ee6e7b4451b418fb338dc02d25391e0181b4494a5cb"
+    },
+    {
+     "path": "scripts/run/check-scrub-local.sh",
+     "sha256": "f81dab5949e518c1ac150f9abf2fc489427fb4c0407914b3a450803826fcb590"
+    },
+    {
+     "path": "scripts/run/first-runs.sh",
+     "sha256": "35ea94838eda7b266dadf2e8cc9f35f6a30b775e04e3104e45e156dd8dff8edd"
+    },
+    {
+     "path": "scripts/run/run-task.sh",
+     "sha256": "3aaf37dd2c476171f634ae1e94bd4c18d0a14f33ba8c417466cd4752d84f84c3"
+    },
+    {
+     "path": "scripts/run/scrub-verdict.sh",
+     "sha256": "fbd7a5c09f5aa2485ef1da82d6fea8cb0d56addfdd7bf596e306d2e88604dc98"
+    },
+    {
+     "path": "scripts/runtime/ecs-claude",
+     "sha256": "6a88336260723d4029cc062e67942b4fc325061a47a5d6604b2a85513dffefe4"
+    }
+   ]
+  }
+ ],
+ "generated_at": "2026-11-17T13:22:37Z",
+ "generator": {
+  "name": "fibtec-docugen",
+  "tools": {
+   "chromium": "156.0.8078.79",
+   "claude-code": "2.1.294",
+   "graphviz": "2.43.0",
+   "markdown-it": "14.1.0",
+   "mermaid-cli": "12.2.0",
+   "openjdk": "17.0.21",
+   "pdf-lib": "1.17.1",
+   "plantuml": "1.2026.9",
+   "python": "3.11.2"
+  },
+  "version": "1.3.0"
+ },
+ "schema": 1,
+ "source": {
+  "archive_sha256": "fc0150eb419e24901df5018260686b7721414a73cae61617a3e0f40e9e8e3eaf",
+  "kind": "zip"
+ }
+}

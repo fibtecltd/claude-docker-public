@@ -1,0 +1,80 @@
+@startuml
+title Components of claude-ecs (names from the source)
+
+actor "Operator" as operator
+
+package "Operator tooling (scripts/)" {
+  component "run-task.sh" as runtask
+  component "ecs-in-docker.sh" as inDocker
+  component "ecs-deploy.sh" as ecsDeploy
+  component "first-runs.sh" as firstRuns
+  component "check-scrub-local.sh" as scrubLocal
+  component "check-scrub-fargate.sh" as scrubFargate
+  component "smoke-ecs.sh" as smoke
+}
+
+package "Infrastructure as code (infra/)" {
+  component "app.py" as app
+  component "ClaudeEcsStack" as stack
+  component "Settings" as settings
+}
+
+package "AWS (stack claude-ecs)" {
+  database "ECR repository claude-ecs" as ecr
+  component "ECS cluster claude-ecs" as cluster
+  component "Task definitions claude-ecs-core, claude-ecs-pyvar" as taskdefs
+  database "Secret claude-ecs/anthropic-api-key" as keySecret
+  database "Secret claude-ecs/github-token (optional)" as ghSecret
+  component "Log group /claude-ecs" as logs
+}
+
+package "Image ecs-base (Dockerfile)" {
+  component "ecs-claude (ENTRYPOINT)" as entry
+  component "claude (Claude Code)" as claude
+  folder "/opt/claude/profiles/*.plugins" as profiles
+  folder "/opt/claude/plugins/*" as plugins
+  file "~/.claude/settings.json" as cfg
+}
+
+package "Build inputs" {
+  file "plugins.lock" as lock
+  component "fetch-plugins.sh" as fetch
+  component "bump-plugin.sh" as bump
+}
+
+cloud "Anthropic API" as anthropic
+cloud "github.com" as github
+
+operator --> runtask : starts a task
+operator --> inDocker : deploy / runs
+inDocker --> ecsDeploy : runs in ecs-deploy image
+inDocker --> firstRuns : runs
+inDocker --> smoke : before push
+firstRuns --> runtask : one call per run
+scrubFargate --> inDocker
+scrubLocal ..> claude : via docker compose
+ecsDeploy --> stack : cdk diff / cdk deploy
+app --> settings : reads CDK context
+app --> stack
+stack --> ecr
+stack --> cluster
+stack --> taskdefs
+stack --> keySecret
+stack --> ghSecret
+stack --> logs
+runtask --> cluster : aws ecs run-task
+taskdefs --> entry : container "claude"
+ecr --> taskdefs : image
+keySecret --> entry : ANTHROPIC_API_KEY
+ghSecret --> entry : GITHUB_TOKEN
+entry --> profiles : reads CLAUDE_PROFILE
+entry --> plugins : --plugin-dir
+entry --> claude : exec
+claude --> cfg
+claude --> anthropic : HTTPS 443
+entry --> github : optional shallow clone
+taskdefs --> logs : awslogs driver, container output
+lock --> fetch
+fetch --> plugins : at Docker build
+bump --> lock : moves a pin
+@enduml

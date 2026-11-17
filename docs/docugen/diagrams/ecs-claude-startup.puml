@@ -1,0 +1,42 @@
+@startuml
+title ecs-claude entrypoint (scripts/runtime/ecs-claude)
+
+start
+:profile = CLAUDE_PROFILE or core;
+if (profile matches [A-Za-z0-9_-]+ and profiles/PROFILE.plugins exists?) then (no)
+  :print "unknown CLAUDE_PROFILE" to stderr;
+  stop
+else (yes)
+endif
+:for each plugin listed in the profile file;
+repeat
+  if (plugin directory exists under /opt/claude/plugins?) then (no)
+    :print "which is not installed" to stderr;
+    stop
+  else (yes)
+    :add --plugin-dir for it;
+  endif
+repeat while (more plugins?) is (yes)
+->no;
+if (CLAUDE_REPO set?) then (yes)
+  if (CLAUDE_REPO is owner/name and CLAUDE_REF is a plain branch or tag name?) then (no)
+    :print format error to stderr;
+    stop
+  else (yes)
+  endif
+  if (GITHUB_TOKEN set?) then (yes)
+    :shallow clone with a git credential helper\n(token is not written to the URL or git config);
+  else (no)
+    :shallow clone without credentials;
+  endif
+  if (clone succeeded?) then (no)
+    :print "could not clone" to stderr;
+    stop
+  else (yes)
+    :cd to the workspace repo directory;
+  endif
+else (no)
+endif
+:exec claude with the plugin dirs and the container arguments;
+stop
+@enduml

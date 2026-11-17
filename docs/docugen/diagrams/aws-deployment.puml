@@ -1,0 +1,37 @@
+@startuml
+title AWS resources created by ClaudeEcsStack (stack claude-ecs)
+
+node "AWS account and region (CDK_DEFAULT_ACCOUNT, CDK_DEFAULT_REGION)" as acct {
+
+  node "VPC Vpc, 2 AZs" as vpc {
+    node "Public subnets (egress=public: cidr_mask 24, egress=nat: cidr_mask 28)" as pub
+    node "Private subnets PRIVATE_WITH_EGRESS (egress=nat only, cidr_mask 24)" as priv
+    node "NAT gateway (egress=nat only, one)" as nat
+    node "S3 gateway endpoint (egress=nat only)" as s3ep
+    node "TaskSecurityGroup: no inbound, TCP 443 outbound" as sg
+
+    node "ECS cluster claude-ecs (FARGATE and FARGATE_SPOT)" as cluster {
+      artifact "Task claude-ecs-core (container claude)" as core
+      artifact "Task claude-ecs-pyvar (container claude)" as pyvar
+    }
+  }
+
+  database "ECR repository claude-ecs (scan on push, newest 10 images, RETAIN)" as ecr
+  database "Secrets Manager claude-ecs/anthropic-api-key (RETAIN)" as key
+  database "Secrets Manager claude-ecs/github-token (github_token=true, RETAIN)" as gh
+  database "CloudWatch log group /claude-ecs (ONE_MONTH)" as logs
+}
+
+cloud "Internet (HTTPS)" as net
+
+pub .. sg
+priv .. sg
+priv --> nat
+nat --> net
+pub --> net : public IP (egress=public)
+priv --> s3ep : ECR layer pulls
+cluster --> ecr : image pull
+cluster --> key : ANTHROPIC_API_KEY
+cluster --> gh : GITHUB_TOKEN, GITHUB_PERSONAL_ACCESS_TOKEN
+cluster --> logs : awslogs, stream prefix = profile
+@enduml

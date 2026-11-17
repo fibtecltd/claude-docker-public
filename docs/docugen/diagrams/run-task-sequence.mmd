@@ -1,0 +1,35 @@
+sequenceDiagram
+    actor Operator
+    participant RT as run-task.sh
+    participant CFN as CloudFormation stack claude-ecs
+    participant ECS as ECS cluster claude-ecs
+    participant EC as ecs-claude
+    participant GH as github.com
+    participant CC as claude
+    participant CW as CloudWatch log group /claude-ecs
+
+    Operator->>RT: --profile, --prompt, --max-turns, --max-budget-usd
+    RT->>RT: validate arguments, build claude args
+    RT->>CFN: describe-stacks (ClusterName, SubnetIds, SecurityGroupId, AssignPublicIp)
+    CFN-->>RT: outputs
+    RT->>RT: build request, check overrides size under 8000 chars
+    alt --dry-run
+        RT-->>Operator: print request, exit 0
+    else start the task
+        RT->>ECS: run-task, taskDefinition claude-ecs-PROFILE, command override
+        ECS-->>RT: task ARN
+        ECS->>EC: start container claude (CLAUDE_PROFILE set)
+        EC->>EC: read profile file, add --plugin-dir per plugin
+        opt CLAUDE_REPO set
+            EC->>GH: shallow clone
+            GH-->>EC: repository
+        end
+        EC->>CC: exec claude with container arguments
+        CC-->>CW: output via awslogs driver
+        loop until lastStatus is STOPPED or --timeout
+            RT->>ECS: describe-tasks
+        end
+        RT->>CW: logs tail, or get-log-events as fallback
+        CW-->>RT: log lines
+        RT-->>Operator: summary, timings, container exit code
+    end

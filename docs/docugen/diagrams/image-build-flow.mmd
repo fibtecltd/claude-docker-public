@@ -1,0 +1,21 @@
+flowchart TD
+    subgraph base["Dockerfile stage ecs-base (FROM node:22-slim)"]
+        A["apt packages: git, curl, ca-certificates, jq, bubblewrap, socat"] --> B["GitHub CLI gh from the official apt repository"]
+        B --> C["uv copied in; venv /opt/venv with Python 3.12, awscli, boto3, pytest, ruff"]
+        C --> D["useradd claude, uid 1001"]
+        D --> E["npm install -g claude-code at CLAUDE_CODE_VERSION"]
+        E --> F["fetch-plugins.sh reads plugins.lock into /opt/claude/plugins"]
+        F --> G["COPY profiles/ and ecs-claude"]
+        G --> H["COPY claude-config/ and write ~/.claude.json"]
+        H --> I["USER claude, ENV, WORKDIR /workspace, ENTRYPOINT ecs-claude"]
+    end
+    subgraph deploy["Dockerfile stage ecs-deploy (FROM ecs-base)"]
+        J["npm install -g aws-cdk; uv pip install aws-cdk-lib, constructs"] --> K["Stripe CLI at STRIPE_CLI_VERSION"]
+        K --> L["AWS Session Manager plugin"]
+        L --> M["USER claude"]
+    end
+    secret[("BuildKit secret github_token, optional")] -.-> F
+    lock[("plugins.lock")] --> F
+    I --> J
+    I --> smokeBase["smoke-ecs.sh IMAGE base"]
+    M --> smokeDeploy["smoke-ecs.sh IMAGE deploy"]
