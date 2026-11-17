@@ -1,0 +1,17 @@
+stateDiagram-v2
+    state stack_status <<choice>>
+    [*] --> stack_status : cmd_deploy
+    stack_status --> ABSENT
+    stack_status --> CREATE_COMPLETE
+    stack_status --> UPDATE_COMPLETE
+    stack_status --> other_status : any other status
+
+    ABSENT --> store_secret : deploy_script stack succeeds
+    ABSENT --> [*] : stack step stopped, nothing pushed
+    CREATE_COMPLETE --> store_secret : already deployed, skipped
+    UPDATE_COMPLETE --> store_secret : already deployed, skipped
+    other_status --> [*] : die, look at the stack in CloudFormation
+
+    store_secret --> push_image : secret_is_set, or key stored
+    push_image --> verify
+    verify --> [*]

@@ -1,0 +1,24 @@
+classDiagram
+    class Stack {
+        <<aws_cdk>>
+    }
+    class Settings {
+        <<dataclass, frozen>>
+        +str egress
+        +str image_tag
+        +int cpu
+        +int memory_mib
+        +int ephemeral_storage_gib
+        +str cpu_architecture
+        +bool github_token
+        +tuple tags
+        +tuple profiles
+        +__post_init__() None
+    }
+    class ClaudeEcsStack {
+        +__init__(scope, construct_id, settings)
+        -_network(settings) Vpc
+        -_secrets(settings) dict
+    }
+    Stack <|-- ClaudeEcsStack
+    ClaudeEcsStack --> Settings : keyword argument settings
